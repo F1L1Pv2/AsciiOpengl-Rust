@@ -27,6 +27,64 @@ struct Color {
     b: u8,
 }
 
+impl Color {
+    fn new(r: u8, g: u8, b: u8) -> Color {
+        Color { r, g, b }
+    }
+
+    fn rgbtohsv(&self) -> (f32, f32, f32) {
+        let r = self.r as f32 / 255.0;
+        let g = self.g as f32 / 255.0;
+        let b = self.b as f32 / 255.0;
+
+        let cmax = r.max(g).max(b);
+        let cmin = r.min(g).min(b);
+        let delta = cmax - cmin;
+
+        let hue = if delta == 0.0 {
+            0.0
+        } else if cmax == r {
+            60.0 * (((g - b) / delta) % 6.0)
+        } else if cmax == g {
+            60.0 * (((b - r) / delta) + 2.0)
+        } else {
+            60.0 * (((r - g) / delta) + 4.0)
+        };
+
+        let saturation = if cmax == 0.0 { 0.0 } else { delta / cmax };
+
+        let value = cmax;
+
+        (hue, saturation, value)
+    }
+
+    fn hsvtorgb(hue: f32, saturation: f32, value: f32) -> Color {
+        let c = value * saturation;
+        let x = c * (1.0 - ((hue / 60.0) % 2.0 - 1.0).abs());
+        let m = value - c;
+
+        let (r, g, b) = if hue < 60.0 {
+            (c, x, 0.0)
+        } else if hue < 120.0 {
+            (x, c, 0.0)
+        } else if hue < 180.0 {
+            (0.0, c, x)
+        } else if hue < 240.0 {
+            (0.0, x, c)
+        } else if hue < 300.0 {
+            (x, 0.0, c)
+        } else {
+            (c, 0.0, x)
+        };
+
+        Color::new(
+            ((r + m) * 255.0) as u8,
+            ((g + m) * 255.0) as u8,
+            ((b + m) * 255.0) as u8,
+        )
+    }
+}
+
 impl TerminalFrameBuffer {
     fn new(width: usize, height: usize, initial_color: Color) -> TerminalFrameBuffer {
         let initial_color_value = u32::from(initial_color.r) << 16
@@ -73,6 +131,9 @@ impl TerminalFrameBuffer {
     }
 
     fn draw_frame(&mut self) {
+
+        let characters = vec![" ", ".", ",", ":", ";", "+", "*", "?", "%", "S", "#", "@"];
+
         let stdout = std::io::stdout();
         let mut out = BufWriter::new(stdout.lock());
         for y in 0..self.height {
@@ -80,14 +141,43 @@ impl TerminalFrameBuffer {
                 let front_pixel = self.get_pixel(x, y);
                 let back_pixel = self.back_buffer[y * self.width + x];
                 if front_pixel != back_pixel {
+
+                    let r = (back_pixel >> 16) & 0xff;
+                    let g = (back_pixel >> 8) & 0xff;
+                    let b = back_pixel & 0xff;
+
+                    let (hue, saturation, brightness) = Color::new(r as u8, g as u8, b as u8)
+                        .rgbtohsv();
+
+                    let character_color = Color::hsvtorgb(hue, saturation, 1.0);
+
+                    let character = characters[(brightness * (characters.len() - 1) as f32)
+                        .round() as usize];
+
+                    // write!(
+                    //     out,
+                    //     "\x1B[{};{}H\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m  ",
+                    //     y + 1,
+                    //     x * 2 + 1,
+                    //     back_pixel >> 16,
+                    //     (back_pixel >> 8) & 0xff,
+                    //     back_pixel & 0xff,
+                    // )
+                    // .unwrap();
+
                     write!(
                         out,
-                        "\x1B[{};{}H\x1b[48;2;{};{};{}m  ",
+                        "\x1B[{};{}H\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m{}{}",
                         y + 1,
                         x * 2 + 1,
                         back_pixel >> 16,
                         (back_pixel >> 8) & 0xff,
-                        back_pixel & 0xff
+                        back_pixel & 0xff,
+                        character_color.r,
+                        character_color.g,
+                        character_color.b,
+                        character,
+                        character
                     )
                     .unwrap();
                 }
@@ -307,7 +397,8 @@ fn main() {
                 // let mut target = display.draw();
                 // target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
-                framebuffer.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+                // framebuffer.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+                framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
                 let model = [
                     [0.01, 0.0, 0.0, 0.0],
