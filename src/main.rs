@@ -1,20 +1,139 @@
-use glium::glutin::event;
-
 #[macro_use]
 extern crate glium;
 
+
+use std::io::{BufWriter, Write};
+
+use device_query;
+use device_query::Keycode;
+use device_query::DeviceState;
+use device_query::DeviceQuery;
+
+use termion;
+
 mod teapot;
+
+struct TerminalFrameBuffer {
+    front_buffer: Vec<u32>,
+    back_buffer: Vec<u32>,
+    width: usize,
+    height: usize,
+}
+
+#[derive(Copy, Clone)]
+struct Color {
+    r: u8,
+    g: u8,
+    b: u8,
+}
+
+impl TerminalFrameBuffer {
+    fn new(width: usize, height: usize, initial_color: Color) -> TerminalFrameBuffer {
+        let initial_color_value = u32::from(initial_color.r) << 16
+            | u32::from(initial_color.g) << 8
+            | u32::from(initial_color.b);
+        let framebuffer = TerminalFrameBuffer {
+            front_buffer: vec![initial_color_value; width * height],
+            back_buffer: vec![initial_color_value; width * height],
+            width,
+            height,
+        };
+        framebuffer.clear_terminal_and_fill_with_initial_color(initial_color);
+        framebuffer
+    }
+
+    fn clear_terminal_and_fill_with_initial_color(&self, initial_color: Color) {
+        let stdout = std::io::stdout();
+        let mut out = BufWriter::new(stdout.lock());
+        write!(out, "\x1B[2J\x1B[1;1H").unwrap();
+        for _y in 0..self.height {
+            for _x in 0..self.width {
+                write!(
+                    out,
+                    "\x1b[48;2;{};{};{}m  ",
+                    initial_color.r, initial_color.g, initial_color.b
+                )
+                .unwrap();
+            }
+            writeln!(out, "\x1b[0m").unwrap();
+        }
+        out.flush().unwrap();
+    }
+    fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
+        let color = u32::from(color.r) << 16 | u32::from(color.g) << 8 | u32::from(color.b);
+        //check if x and y are in bounds
+        if x >= self.width || y >= self.height {
+            return;
+        }
+        self.back_buffer[y * self.width + x] = color;
+    }
+
+    fn get_pixel(&self, x: usize, y: usize) -> u32 {
+        self.front_buffer[y * self.width + x]
+    }
+
+    fn draw_frame(&mut self) {
+        let stdout = std::io::stdout();
+        let mut out = BufWriter::new(stdout.lock());
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let front_pixel = self.get_pixel(x, y);
+                let back_pixel = self.back_buffer[y * self.width + x];
+                if front_pixel != back_pixel {
+                    write!(
+                        out,
+                        "\x1B[{};{}H\x1b[48;2;{};{};{}m  ",
+                        y + 1,
+                        x * 2 + 1,
+                        back_pixel >> 16,
+                        (back_pixel >> 8) & 0xff,
+                        back_pixel & 0xff
+                    )
+                    .unwrap();
+                }
+            }
+        }
+        write!(out, "\x1B[{};{}H\x1b[0m", self.height + 1, 1).unwrap();
+        out.flush().unwrap();
+        self.swap_buffers();
+    }
+
+    fn clear(&mut self) {
+        self.back_buffer = vec![0; self.width * self.height];
+    }
+
+    fn swap_buffers(&mut self) {
+        std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+    }
+}
 
 fn main() {
     #[allow(unused_imports)]
     use glium::{glutin, Surface};
 
+    let terminal_size = termion::terminal_size().unwrap();
+    let terminal_size = (terminal_size.0 as u32, terminal_size.1 as u32);
+
+    let mut terminal_fb = TerminalFrameBuffer::new(
+        terminal_size.0 as usize / 2,
+        terminal_size.1 as usize,
+        Color {
+            r: 0,
+            g: 0,
+            b: 0,
+        },
+    );
+
+
     let event_loop = glutin::event_loop::EventLoop::new();
-    let wb = glutin::window::WindowBuilder::new();
+    // let wb = glutin::window::WindowBuilder::new();
+    
+    //offscreen rendering
+    let wb = glutin::window::WindowBuilder::new().with_visible(false).with_inner_size(glutin::dpi::LogicalSize::new(terminal_size.0, terminal_size.1));
+
+
     let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
-
-    // display.gl_window().window().set_cursor_visible(false);
 
     let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
     let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
@@ -70,19 +189,51 @@ fn main() {
 
     let mouse_sensitive = 0.001;
 
-    let mut move_forward = false;
-    let mut move_backward = false;
-    let mut move_left = false;
-    let mut move_right = false;
-    let mut move_up = false;
-    let mut move_down = false;
+
 
     let mut accumulator = std::time::Duration::new(0, 0);
     let fixed_timestep = std::time::Duration::from_nanos(16_666_667);
     let mut next_frame_time = std::time::Instant::now();
 
+
+    let device_state = DeviceState::new();
+
     event_loop.run(move |event, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Poll;
+
+        let mut move_forward = false;
+        let mut move_backward = false;
+        let mut move_left = false;
+        let mut move_right = false;
+        let mut move_up = false;
+        let mut move_down = false;
+
+
+        let mut texture = glium::texture::Texture2d::empty_with_format(
+            &display,
+            glium::texture::UncompressedFloatFormat::U8U8U8U8,
+            glium::texture::MipmapsOption::NoMipmap,
+            terminal_size.0,
+            terminal_size.1,
+        )
+        .unwrap();
+    
+        // Create a depth buffer for off-screen rendering
+        let mut depthbuffer = glium::framebuffer::DepthRenderBuffer::new(
+            &display,
+            glium::texture::DepthFormat::F32,
+            terminal_size.0,
+            terminal_size.1,
+        )
+        .unwrap();
+    
+        // Create a framebuffer for off-screen rendering
+        let mut framebuffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
+            &display,
+            &texture,
+            &depthbuffer,
+        )
+        .unwrap();
 
         match event {
             glutin::event::Event::WindowEvent { event, .. } => match event {
@@ -93,56 +244,34 @@ fn main() {
                 _ => return,
             },
 
-            glutin::event::Event::DeviceEvent { event, .. } => match event {
-                glutin::event::DeviceEvent::MouseMotion { delta } => {
-                    let delta = (delta.0 as f32 * mouse_sensitive, delta.1 as f32 * mouse_sensitive);
-                    player_rot[0] += delta.1;
-                    player_rot[1] += delta.0;
-                }
-
-                //keyboard
-                glutin::event::DeviceEvent::Key(input) => match input.virtual_keycode {
-                    Some(glutin::event::VirtualKeyCode::W) => {
-                        move_forward = input.state == glutin::event::ElementState::Pressed
-                    }
-                    Some(glutin::event::VirtualKeyCode::S) => {
-                        move_backward = input.state == glutin::event::ElementState::Pressed
-                    }
-                    Some(glutin::event::VirtualKeyCode::A) => {
-                        move_left = input.state == glutin::event::ElementState::Pressed
-                    }
-                    Some(glutin::event::VirtualKeyCode::D) => {
-                        move_right = input.state == glutin::event::ElementState::Pressed
-                    }
-                    Some(glutin::event::VirtualKeyCode::Escape) => {
-                        *control_flow = glutin::event_loop::ControlFlow::Exit
-                    }
-                    Some(glutin::event::VirtualKeyCode::Space) => {
-                        move_up = input.state == glutin::event::ElementState::Pressed
-                    }
-                    Some(glutin::event::VirtualKeyCode::LShift) => {
-                        move_down = input.state == glutin::event::ElementState::Pressed
-                    }
-                    Some(glutin::event::VirtualKeyCode::Escape) => {
-                        //set mouse visible
-                        display.gl_window().window().set_cursor_visible(true);
-                        
-
-                        *control_flow = glutin::event_loop::ControlFlow::Exit
-                    }
-                    
-                    _ => (),
-                },
-
-                _ => return,
-            },
-
             glutin::event::Event::MainEventsCleared => {
                 let now = std::time::Instant::now();
                 accumulator += now - next_frame_time;
                 next_frame_time = now;
 
                 while accumulator >= fixed_timestep {
+
+
+                    let keys: Vec<Keycode> = device_state.get_keys();
+
+                    for key in keys {
+                        match key {
+                            Keycode::W => move_forward = true,
+                            Keycode::S => move_backward = true,
+                            Keycode::A => move_left = true,
+                            Keycode::D => move_right = true,
+                            Keycode::Space => move_up = true,
+                            Keycode::LShift => move_down = true,
+                            Keycode::I => player_rot[0] -= 0.05,
+                            Keycode::K => player_rot[0] += 0.05,
+                            Keycode::J => player_rot[1] -= 0.05,
+                            Keycode::L => player_rot[1] += 0.05,
+                            _ => (),
+                        }
+                    }           
+
+
+
                     accumulator -= fixed_timestep;
 
                     // Update player position and rotation
@@ -175,8 +304,10 @@ fn main() {
                     }
                 }
 
-                let mut target = display.draw();
-                target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+                // let mut target = display.draw();
+                // target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+
+                framebuffer.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
 
                 let model = [
                     [0.01, 0.0, 0.0, 0.0],
@@ -188,7 +319,8 @@ fn main() {
                 let view = view_matrix(&player_pos, &player_rot);
 
                 let perspective = {
-                    let (width, height) = target.get_dimensions();
+                    // let (width, height) = target.get_dimensions();
+                    let (width, height) = terminal_size;
                     let aspect_ratio = height as f32 / width as f32;
 
                     let fov: f32 = 3.141592 / 3.0;
@@ -217,7 +349,8 @@ fn main() {
                     ..Default::default()
                 };
 
-                target
+                // target
+                framebuffer
                     .draw(
                         (&positions, &normals),
                         &indices,
@@ -226,11 +359,42 @@ fn main() {
                         &params,
                     )
                     .unwrap();
-                target.finish().unwrap();
+
+                // target.finish().unwrap();
+
+
+        
+
+
             },
 
             _ => return,
         }
+
+
+        //get pixels from display
+        // let pixels: glium::texture::RawImage2d<u8> = display.read_front_buffer().unwrap();
+        let pixels: glium::texture::RawImage2d<u8> = texture.read();
+        terminal_fb.clear();
+        for i in 0..pixels.data.len()/4 {
+            let r = pixels.data[i*4];
+            let g = pixels.data[i*4+1];
+            let b = pixels.data[i*4+2];
+             
+            let x = ((i % pixels.width as usize) * terminal_size.0 as usize / pixels.width as usize) - terminal_size.0 as usize / 4;
+            let y = terminal_size.1 as usize - ((i / pixels.width as usize) * terminal_size.1 as usize / pixels.height as usize);
+
+            let color = Color {
+                r: r,
+                g: g,
+                b: b,
+            };
+
+            terminal_fb.set_pixel(x, y, color);            
+
+        }
+        terminal_fb.draw_frame();
+
     });
 }
 
@@ -288,30 +452,6 @@ macro_rules! mat_mul {
 }
 
 fn view_matrix(position: &[f32; 3], rotation: &[f32; 3]) -> [[f32; 4]; 4] {
-    // let f = rotation;
-    // let s = [
-    //     f[1] * up[2] - f[2] * up[1],
-    //     f[2] * up[0] - f[0] * up[2],
-    //     f[0] * up[1] - f[1] * up[0],
-    // ];
-    // let s_norm = (s[0] * s[0] + s[1] * s[1] + s[2] * s[2]).sqrt();
-    // let s = [s[0] / s_norm, s[1] / s_norm, s[2] / s_norm];
-    // let u = [
-    //     s[1] * f[2] - s[2] * f[1],
-    //     s[2] * f[0] - s[0] * f[2],
-    //     s[0] * f[1] - s[1] * f[0],
-    // ];
-    // let p = [
-    //     -(s[0] * position[0] + s[1] * position[1] + s[2] * position[2]),
-    //     -(u[0] * position[0] + u[1] * position[1] + u[2] * position[2]),
-    //     -(f[0] * position[0] + f[1] * position[1] + f[2] * position[2]),
-    // ];
-    // [
-    //     [s[0], u[0], f[0], 0.0],
-    //     [s[1], u[1], f[1], 0.0],
-    //     [s[2], u[2], f[2], 0.0],
-    //     [p[0], p[1], p[2], 1.0],
-    // ]
 
     let mut m = [
         [1.0, 0.0, 0.0, 0.0f32],
@@ -319,11 +459,6 @@ fn view_matrix(position: &[f32; 3], rotation: &[f32; 3]) -> [[f32; 4]; 4] {
         [0.0, 0.0, 1.0, 0.0f32],
         [0.0, 0.0, 0.0, 1.0f32],
     ];
-
-    // let m = (rotate_x(rotation[0]) * m).into();
-    // let m = (rotate_y(rotation[1]) * m).into();
-    // let m = (rotate_z(rotation[2]) * m).into();
-    // let m = (translate(-position[0], -position[1], -position[2]) * m).into();
 
     m = mat_mul!(rotate_x(rotation[0]), m);
     m = mat_mul!(rotate_y(rotation[1]), m);
