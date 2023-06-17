@@ -80,8 +80,9 @@ impl TerminalFrameBuffer {
     }
 
     fn draw_frame(&mut self) {
-        let characters = vec![" ", ".", ",", ":", ";", "+", "*", "?", "%", "S", "#", "@"];
-
+        // let characters = vec!["\u{a0}", ".", ",", ":", ";", "+", "*", "?", "%", "S", "#", "@"];
+        //reversed
+        let characters = vec!["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "\u{a0}"];
         let stdout = std::io::stdout();
         let mut out = BufWriter::new(stdout.lock());
         for y in 0..self.height {
@@ -388,7 +389,8 @@ fn main() {
                     }
                 }
 
-                framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
+                // framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
+                framebuffer.clear_color_and_depth((0., 0., 0., 1.0), 1.0);
 
                 let model = [
                     [0.01, 0.0, 0.0, 0.0],
@@ -452,6 +454,7 @@ fn main() {
         //get pixels from display
         // let pixels: glium::texture::RawImage2d<u8> = display.read_front_buffer().unwrap();
         let pixels: glium::texture::RawImage2d<u8> = texture.read();
+        // terminal_fb.clear();
         terminal_fb.clear();
         for i in 0..pixels.data.len() / 4 {
             let r = pixels.data[i * 4];
