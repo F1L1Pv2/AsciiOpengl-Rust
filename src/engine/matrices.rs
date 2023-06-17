@@ -76,9 +76,9 @@ pub fn perspective_matrix(terminal_size: (u32, u32)) -> [[f32; 4]; 4] {
     let (width, height) = terminal_size;
     let width = width as u16;
     let height = height as u16;
-    let aspect_ratio = (height as f32) / (width as f32);
+    let aspect_ratio = f32::from(height) / f32::from(width);
 
-    let fov: f32 = 3.141592 / 3.0;
+    let fov: f32 = std::f32::consts::PI / 3.0;
     let zfar = 1024.0;
     let znear = 0.1;
 

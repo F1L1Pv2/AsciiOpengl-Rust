@@ -3,7 +3,7 @@ extern crate glium;
 
 //--------------Terminal Stuff -------------------------
 use device_query::{ DeviceQuery, DeviceState, Keycode };
-use terminal_size::{ terminal_size, Width, Height };
+use terminal_size::{ terminal_size };
 //------------------ Teapot ----------------------------
 mod rawmodels;
 use rawmodels::teapot;
@@ -19,7 +19,7 @@ fn main() {
     use glium::{ glutin, Surface };
 
     let terminal_size = terminal_size().unwrap();
-    let terminal_size: (u32, u32) = (terminal_size.0.0 as u32, terminal_size.1.0 as u32);
+    let terminal_size: (u32, u32) = (u32::from(terminal_size.0.0), u32::from(terminal_size.1.0));
 
     let mut terminal_fb = TerminalFrameBuffer::new(
         (terminal_size.0 as usize) / 2,
@@ -62,7 +62,7 @@ fn main() {
 
     let move_speed = 0.05;
 
-    let mouse_sensitive = 0.001;
+    // let mouse_sensitive = 0.001;
 
     let mut accumulator = std::time::Duration::new(0, 0);
     let fixed_timestep = std::time::Duration::from_nanos(16_666_667);
@@ -80,7 +80,7 @@ fn main() {
         let mut move_up = false;
         let mut move_down = false;
 
-        let mut texture = glium::texture::Texture2d
+        let texture = glium::texture::Texture2d
             ::empty_with_format(
                 &display,
                 glium::texture::UncompressedFloatFormat::U8U8U8U8,
@@ -91,7 +91,7 @@ fn main() {
             .unwrap();
 
         // Create a depth buffer for off-screen rendering
-        let mut depthbuffer = glium::framebuffer::DepthRenderBuffer
+        let depthbuffer = glium::framebuffer::DepthRenderBuffer
             ::new(&display, glium::texture::DepthFormat::F32, terminal_size.0, terminal_size.1)
             .unwrap();
 
@@ -252,9 +252,9 @@ fn main() {
                     (pixels.height as usize);
 
             let color = Color {
-                r: r,
-                g: g,
-                b: b,
+                r,
+                g,
+                b,
             };
 
             terminal_fb.set_pixel(x, y, color);
