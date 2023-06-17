@@ -9,6 +9,7 @@ mod rawmodels;
 use rawmodels::teapot;
 //------------------ My stuff --------------------------
 mod engine;
+use engine::objects::Object;
 use engine::ascii_render::{Color, TerminalFrameBuffer};
 use engine::camera::Camera;
 // -----------------------------------------------------
@@ -84,6 +85,21 @@ fn main() {
         terminal_res,
     );
 
+    let monke_model = [
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 2.0, 1.0f32],
+    ];
+
+    let mut Monke = Object::new(
+        monke_model,
+        "src/models/monke.obj",
+        &display,
+    );
+
+    // return;
+
     // Main loop
     event_loop.run(move |event, _, control_flow| {
         // Check res and update if changed
@@ -130,7 +146,7 @@ fn main() {
         .unwrap();
 
         // Create a framebuffer for off-screen rendering
-        let mut framebuffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
+        let mut framebuffer: glium::framebuffer::SimpleFrameBuffer= glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
             &display,
             &texture,
             &depthbuffer,
@@ -141,7 +157,7 @@ fn main() {
             [0.01, 0.0, 0.0, 0.0],
             [0.0, 0.01, 0.0, 0.0],
             [0.0, 0.0, 0.01, 0.0],
-            [0.0, 0.0, 2.0, 1.0f32],
+            [2.0, 0.0, 2.0, 1.0f32],
         ];
 
         match event {
@@ -224,7 +240,26 @@ fn main() {
                         &params,
                     )
                     .unwrap();
-            }
+
+
+                let monkeUniforms = uniform! {
+                    model: Monke.model,
+                    view: camera.view_matrix(),
+                    perspective: camera.perspective_matrix(),
+                    u_light: [-1.0, 0.4, 0.9f32],
+                };
+
+                // target
+                framebuffer
+                    .draw(
+                        &Monke.vb,
+                        &Monke.ib,
+                        &program,
+                        &monkeUniforms,
+                        &params,
+                    )
+                    .unwrap();
+                }
 
             _ => {
                 return;

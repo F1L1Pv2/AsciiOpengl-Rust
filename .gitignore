@@ -1,4 +1,4 @@
 /target
 
-/models/*
-/sprites/*
+# src/models/*
+# src/sprites/*
