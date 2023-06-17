@@ -220,29 +220,6 @@ fn main() {
 
                     framebuffer.draw(&object.vb, &object.ib, &program, &uniforms, &params).unwrap();
                 }
-
-                // let cube_uniforms = uniform! {
-                //     model: cube.model,
-                //     view: camera.view_matrix(),
-                //     perspective: camera.perspective_matrix(),
-                //     u_light: light,
-                // };
-
-                // framebuffer
-                //     .draw(&cube.vb, &cube.ib, &program, &cube_uniforms, &params)
-                //     .unwrap();
-
-                // let monke_uniforms = uniform! {
-                //     model: monke.model,
-                //     view: camera.view_matrix(),
-                //     perspective: camera.perspective_matrix(),
-                //     u_light: light,
-                // };
-
-                // // target
-                // framebuffer
-                //     .draw(&monke.vb, &monke.ib, &program, &monke_uniforms, &params)
-                //     .unwrap();
             }
 
             _ => {
