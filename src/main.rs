@@ -98,7 +98,7 @@ fn main() {
         &display,
     );
 
-    // return;
+    let light = [1.4, 0.4, -0.7f32];
 
     // Main loop
     event_loop.run(move |event, _, control_flow| {
@@ -220,8 +220,7 @@ fn main() {
 
                 //--------------------------------- Render (post update) ---------------------------------
 
-                // framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
-                framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+                framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
 
                 let uniforms = uniform! {
                     model: model,
@@ -241,12 +240,11 @@ fn main() {
                     )
                     .unwrap();
 
-
                 let monkeUniforms = uniform! {
                     model: Monke.model,
                     view: camera.view_matrix(),
                     perspective: camera.perspective_matrix(),
-                    u_light: [-1.0, 0.4, 0.9f32],
+                    u_light: light,
                 };
 
                 // target

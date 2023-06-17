@@ -2,6 +2,7 @@
 
 in vec3 v_normal;
 in vec3 v_position;
+in vec2 v_tex_coords;
 
 out vec4 color;
 
