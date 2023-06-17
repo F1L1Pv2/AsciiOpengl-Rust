@@ -1,4 +1,4 @@
-use std::io::{ BufWriter, Write };
+use std::io::{BufWriter, Write};
 
 pub struct TerminalFrameBuffer {
     front_buffer: Vec<u32>,
@@ -22,10 +22,9 @@ pub struct Color {
 
 impl TerminalFrameBuffer {
     pub fn new(width: usize, height: usize, initial_color: Color) -> TerminalFrameBuffer {
-        let initial_color_value =
-            (u32::from(initial_color.r) << 16) |
-            (u32::from(initial_color.g) << 8) |
-            u32::from(initial_color.b);
+        let initial_color_value = (u32::from(initial_color.r) << 16)
+            | (u32::from(initial_color.g) << 8)
+            | u32::from(initial_color.b);
         let framebuffer = TerminalFrameBuffer {
             front_buffer: vec![initial_color_value; width * height],
             back_buffer: vec![initial_color_value; width * height],
@@ -34,6 +33,13 @@ impl TerminalFrameBuffer {
         };
         framebuffer.clear_terminal_and_fill_with_initial_color(initial_color);
         framebuffer
+    }
+
+    pub fn update_res(&mut self, width: usize, height: usize) {
+        self.front_buffer = vec![0; width * height];
+        self.back_buffer = vec![0; width * height];
+        self.width = width;
+        self.height = height;
     }
 
     pub fn clear_terminal_and_fill_with_initial_color(&self, initial_color: Color) {
@@ -45,10 +51,9 @@ impl TerminalFrameBuffer {
                 write!(
                     out,
                     "\x1b[48;2;{};{};{}m  ",
-                    initial_color.r,
-                    initial_color.g,
-                    initial_color.b
-                ).unwrap();
+                    initial_color.r, initial_color.g, initial_color.b
+                )
+                .unwrap();
             }
             writeln!(out, "\x1b[0m").unwrap();
         }
@@ -70,7 +75,9 @@ impl TerminalFrameBuffer {
     pub fn draw_frame(&mut self) {
         // let characters = vec!["\u{a0}", ".", ",", ":", ";", "+", "*", "?", "%", "S", "#", "@"];
         //reversed
-        let characters = vec!["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "\u{a0}"];
+        let characters = vec![
+            "@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "\u{a0}",
+        ];
         let stdout = std::io::stdout();
         let mut out = BufWriter::new(stdout.lock());
         for y in 0..self.height {
@@ -83,11 +90,8 @@ impl TerminalFrameBuffer {
                     let b = back_pixel & 0xff;
 
                     //calculate hsl
-                    let (h, s, l) = rgb_to_hsl(
-                        (r as f32) / 255.0,
-                        (g as f32) / 255.0,
-                        (b as f32) / 255.0
-                    );
+                    let (h, s, l) =
+                        rgb_to_hsl((r as f32) / 255.0, (g as f32) / 255.0, (b as f32) / 255.0);
 
                     //calculate character from l
                     let character_index = ((1.0 - l) * ((characters.len() - 1) as f32)) as usize;
@@ -109,7 +113,8 @@ impl TerminalFrameBuffer {
                         fb,
                         character,
                         character
-                    ).unwrap();
+                    )
+                    .unwrap();
                 }
             }
         }
@@ -144,7 +149,11 @@ fn rgb_to_hsl(r: f32, g: f32, b: f32) -> (f32, f32, f32) {
 
     let l = (cmax + cmin) / 2.0;
 
-    let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
+    let s = if delta == 0.0 {
+        0.0
+    } else {
+        delta / (1.0 - (2.0 * l - 1.0).abs())
+    };
 
     (h, s, l)
 }

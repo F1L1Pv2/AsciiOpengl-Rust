@@ -1,4 +1,3 @@
-
 fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
     [
         [1.0, 0.0, 0.0, 0.0],
@@ -37,8 +36,7 @@ fn translate(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
 
 //create macro for matrix multiplication
 macro_rules! mat_mul {
-    ($a:expr, $b:expr) => {
-        {
+    ($a:expr, $b:expr) => {{
         let mut result = [[0.0; 4]; 4];
         for i in 0..4 {
             for j in 0..4 {
@@ -48,10 +46,8 @@ macro_rules! mat_mul {
             }
         }
         result
-        }
-    };
+    }};
 }
-
 
 // let perspective = {
 //     // let (width, height) = target.get_dimensions();
