@@ -1,8 +1,6 @@
 #[macro_use]
 extern crate glium;
 
-use std::io::{ BufWriter, Write };
-
 use device_query;
 use device_query::Keycode;
 use device_query::DeviceState;
@@ -12,180 +10,10 @@ use glium::debug;
 use termion;
 
 mod teapot;
-struct TerminalFrameBuffer {
-    front_buffer: Vec<u32>,
-    back_buffer: Vec<u32>,
-    width: usize,
-    height: usize,
-}
+mod engine;
+use engine::ascii_render::{ TerminalFrameBuffer, Color };
+use engine::matrices::{ perspective_matrix, view_matrix };
 
-#[derive(Copy, Clone, Debug)]
-struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
-}
-
-impl Color {
-    fn new(r: u8, g: u8, b: u8) -> Color {
-        Color { r, g, b }
-    }
-}
-
-impl TerminalFrameBuffer {
-    fn new(width: usize, height: usize, initial_color: Color) -> TerminalFrameBuffer {
-        let initial_color_value =
-            (u32::from(initial_color.r) << 16) |
-            (u32::from(initial_color.g) << 8) |
-            u32::from(initial_color.b);
-        let framebuffer = TerminalFrameBuffer {
-            front_buffer: vec![initial_color_value; width * height],
-            back_buffer: vec![initial_color_value; width * height],
-            width,
-            height,
-        };
-        framebuffer.clear_terminal_and_fill_with_initial_color(initial_color);
-        framebuffer
-    }
-
-    fn clear_terminal_and_fill_with_initial_color(&self, initial_color: Color) {
-        let stdout = std::io::stdout();
-        let mut out = BufWriter::new(stdout.lock());
-        write!(out, "\x1B[2J\x1B[1;1H").unwrap();
-        for _y in 0..self.height {
-            for _x in 0..self.width {
-                write!(
-                    out,
-                    "\x1b[48;2;{};{};{}m  ",
-                    initial_color.r,
-                    initial_color.g,
-                    initial_color.b
-                ).unwrap();
-            }
-            writeln!(out, "\x1b[0m").unwrap();
-        }
-        out.flush().unwrap();
-    }
-    fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
-        let color = (u32::from(color.r) << 16) | (u32::from(color.g) << 8) | u32::from(color.b);
-        //check if x and y are in bounds
-        if x >= self.width || y >= self.height {
-            return;
-        }
-        self.back_buffer[y * self.width + x] = color;
-    }
-
-    fn get_pixel(&self, x: usize, y: usize) -> u32 {
-        self.front_buffer[y * self.width + x]
-    }
-
-    fn draw_frame(&mut self) {
-        // let characters = vec!["\u{a0}", ".", ",", ":", ";", "+", "*", "?", "%", "S", "#", "@"];
-        //reversed
-        let characters = vec!["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "\u{a0}"];
-        let stdout = std::io::stdout();
-        let mut out = BufWriter::new(stdout.lock());
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let front_pixel = self.get_pixel(x, y);
-                let back_pixel = self.back_buffer[y * self.width + x];
-                if front_pixel != back_pixel {
-                    let r = (back_pixel >> 16) & 0xff;
-                    let g = (back_pixel >> 8) & 0xff;
-                    let b = back_pixel & 0xff;
-
-                    //calculate hsl
-                    let (h, s, l) = rgb_to_hsl(
-                        (r as f32) / 255.0,
-                        (g as f32) / 255.0,
-                        (b as f32) / 255.0
-                    );
-
-                    //calculate character from l
-                    let character_index = ((1.0 - l) * ((characters.len() - 1) as f32)) as usize;
-                    let character = characters[character_index];
-
-                    //calculate color from h and s
-                    let (fr, fg, fb) = hsl_to_rgb(h, s, 0.5);
-
-                    write!(
-                        out,
-                        "\x1B[{};{}H\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m{}{}",
-                        y + 1,
-                        x * 2 + 1,
-                        r,
-                        g,
-                        b,
-                        fr,
-                        fg,
-                        fb,
-                        character,
-                        character
-                    ).unwrap();
-                }
-            }
-        }
-        write!(out, "\x1B[{};{}H\x1b[0m", self.height + 1, 1).unwrap();
-        out.flush().unwrap();
-        self.swap_buffers();
-    }
-
-    fn clear(&mut self) {
-        self.back_buffer = vec![0; self.width * self.height];
-    }
-
-    fn swap_buffers(&mut self) {
-        std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
-    }
-}
-
-fn rgb_to_hsl(r: f32, g: f32, b: f32) -> (f32, f32, f32) {
-    let cmax = r.max(g.max(b));
-    let cmin = r.min(g.min(b));
-    let delta = cmax - cmin;
-
-    let h = if delta == 0.0 {
-        0.0
-    } else if cmax == r {
-        60.0 * (((g - b) / delta) % 6.0)
-    } else if cmax == g {
-        60.0 * ((b - r) / delta + 2.0)
-    } else {
-        60.0 * ((r - g) / delta + 4.0)
-    };
-
-    let l = (cmax + cmin) / 2.0;
-
-    let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
-
-    (h, s, l)
-}
-
-fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
-    let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
-    let x = c * (1.0 - (((h / 60.0) % 2.0) - 1.0).abs());
-    let m = l - c / 2.0;
-
-    let (r, g, b) = if h < 60.0 {
-        (c, x, 0.0)
-    } else if h < 120.0 {
-        (x, c, 0.0)
-    } else if h < 180.0 {
-        (0.0, c, x)
-    } else if h < 240.0 {
-        (0.0, x, c)
-    } else if h < 300.0 {
-        (x, 0.0, c)
-    } else {
-        (c, 0.0, x)
-    };
-
-    let r = ((r + m) * 255.0) as u8;
-    let g = ((g + m) * 255.0) as u8;
-    let b = ((b + m) * 255.0) as u8;
-
-    (r, g, b)
-}
 
 fn main() {
     #[allow(unused_imports)]
@@ -205,9 +33,6 @@ fn main() {
     );
 
     let event_loop = glutin::event_loop::EventLoop::new();
-    // let wb = glutin::window::WindowBuilder::new();
-
-    //offscreen rendering
     let wb = glutin::window::WindowBuilder
         ::new()
         .with_visible(false)
@@ -222,56 +47,15 @@ fn main() {
         ::new(&display, glium::index::PrimitiveType::TrianglesList, &teapot::INDICES)
         .unwrap();
 
-    let vertex_shader_src =
-        r#"
-        #version 150
+    //read vertex shader source code from file
+    let vertex_shader_src = std::fs::read_to_string("src/shaders/vertex_shader.glsl")
+        .expect("Failed to read vertex shader source code from file");
 
-        in vec3 position;
-        in vec3 normal;
-
-        out vec3 v_normal;
-        out vec3 v_position;
-
-        uniform mat4 perspective;
-        uniform mat4 view;
-        uniform mat4 model;
-
-        void main() {
-            mat4 modelview = view * model;
-            v_normal = transpose(inverse(mat3(modelview))) * normal;
-            gl_Position = perspective * modelview * vec4(position, 1.0);
-            v_position = gl_Position.xyz/gl_Position.w;
-        }
-    "#;
-
-    let fragment_shader_src =
-        r#"
-        #version 140
-
-        in vec3 v_normal;
-        in vec3 v_position;
-
-        out vec4 color;
-
-        uniform vec3 u_light;
-
-        const vec3 ambient_color = vec3(0.2, 0.0, 0.0);
-        const vec3 diffuse_color = vec3(0.6, 0.0, 0.0);
-        const vec3 specular_color = vec3(1.0, 1.0, 1.0);
-
-        void main() {
-            float diffuse = max(dot(normalize(v_normal), normalize(u_light)), 0.0);
-
-            vec3 camera_dir = normalize(-v_position);
-            vec3 half_direction = normalize(normalize(u_light) + camera_dir);
-            float specular = pow(max(dot(half_direction, normalize(v_normal)), 0.0), 16.0);
-
-            color = vec4(ambient_color + diffuse * diffuse_color + specular * specular_color, 1.0);
-        }
-    "#;
+    let fragment_shader_src = std::fs::read_to_string("src/shaders/fragment_shader.glsl")
+        .expect("Failed to read fragment shader source code from file");
 
     let program = glium::Program
-        ::from_source(&display, vertex_shader_src, fragment_shader_src, None)
+        ::from_source(&display, vertex_shader_src.as_str(), fragment_shader_src.as_str(), None)
         .unwrap();
 
     let mut player_pos = [0.0, 0.0, 0.0f32];
@@ -415,29 +199,6 @@ fn main() {
                     [0.0, 0.0, 2.0, 1.0f32],
                 ];
 
-                let view = view_matrix(&player_pos, &player_rot);
-
-                let perspective = {
-                    // let (width, height) = target.get_dimensions();
-                    let (width, height) = terminal_size;
-                    let aspect_ratio = (height as f32) / (width as f32);
-
-                    let fov: f32 = 3.141592 / 3.0;
-                    let zfar = 1024.0;
-                    let znear = 0.1;
-
-                    let f = 1.0 / (fov / 2.0).tan();
-
-                    [
-                        [f * aspect_ratio, 0.0, 0.0, 0.0],
-                        [0.0, f, 0.0, 0.0],
-                        [0.0, 0.0, (zfar + znear) / (zfar - znear), 1.0],
-                        [0.0, 0.0, -(2.0 * zfar * znear) / (zfar - znear), 0.0],
-                    ]
-                };
-
-                let light = [-1.0, 0.4, 0.9f32];
-
                 let params = glium::DrawParameters {
                     depth: glium::Depth {
                         test: glium::draw_parameters::DepthTest::IfLess,
@@ -448,13 +209,20 @@ fn main() {
                     ..Default::default()
                 };
 
+                let uniforms = uniform! {
+                    model: model,
+                    view: view_matrix(&player_pos, &player_rot),
+                    perspective: perspective_matrix(terminal_size),
+                    u_light: [-1.0, 0.4, 0.9f32],
+                };
+
                 // target
                 framebuffer
                     .draw(
                         (&positions, &normals),
                         &indices,
                         &program,
-                        &(uniform! { model: model, view: view, perspective: perspective, u_light: light }),
+                        &uniforms,
                         &params
                     )
                     .unwrap();
@@ -468,9 +236,7 @@ fn main() {
         }
 
         //get pixels from display
-        // let pixels: glium::texture::RawImage2d<u8> = display.read_front_buffer().unwrap();
         let pixels: glium::texture::RawImage2d<u8> = texture.read();
-        // terminal_fb.clear();
         terminal_fb.clear();
         for i in 0..pixels.data.len() / 4 {
             let r = pixels.data[i * 4];
@@ -496,73 +262,4 @@ fn main() {
         }
         terminal_fb.draw_frame();
     });
-}
-
-fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
-    [
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, angle.cos(), -angle.sin(), 0.0],
-        [0.0, angle.sin(), angle.cos(), 0.0],
-        [0.0, 0.0, 0.0, 1.0f32],
-    ]
-}
-
-fn rotate_y(angle: f32) -> [[f32; 4]; 4] {
-    [
-        [angle.cos(), 0.0, angle.sin(), 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [-angle.sin(), 0.0, angle.cos(), 0.0],
-        [0.0, 0.0, 0.0, 1.0f32],
-    ]
-}
-
-fn rotate_z(angle: f32) -> [[f32; 4]; 4] {
-    [
-        [angle.cos(), -angle.sin(), 0.0, 0.0],
-        [angle.sin(), angle.cos(), 0.0, 0.0],
-        [0.0, 0.0, 1.0f32, 0.0],
-        [0.0, 0.0, 0.0, 1.0f32],
-    ]
-}
-
-fn translate(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
-    [
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0f32, 0.0],
-        [x, y, z, 1.0f32],
-    ]
-}
-
-//create macro for matrix multiplication
-macro_rules! mat_mul {
-    ($a:expr, $b:expr) => {
-        {
-        let mut result = [[0.0; 4]; 4];
-        for i in 0..4 {
-            for j in 0..4 {
-                for k in 0..4 {
-                    result[i][j] += $a[i][k] * $b[k][j];
-                }
-            }
-        }
-        result
-        }
-    };
-}
-
-fn view_matrix(position: &[f32; 3], rotation: &[f32; 3]) -> [[f32; 4]; 4] {
-    let mut m = [
-        [1.0, 0.0, 0.0, 0.0f32],
-        [0.0, 1.0, 0.0, 0.0f32],
-        [0.0, 0.0, 1.0, 0.0f32],
-        [0.0, 0.0, 0.0, 1.0f32],
-    ];
-
-    m = mat_mul!(rotate_x(rotation[0]), m);
-    m = mat_mul!(rotate_y(rotation[1]), m);
-    m = mat_mul!(rotate_z(rotation[2]), m);
-    m = mat_mul!(translate(-position[0], -position[1], -position[2]), m);
-
-    m
 }
