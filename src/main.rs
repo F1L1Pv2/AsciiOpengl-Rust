@@ -9,9 +9,9 @@ mod rawmodels;
 use rawmodels::teapot;
 //------------------ My stuff --------------------------
 mod engine;
-use engine::objects::Object;
 use engine::ascii_render::{Color, TerminalFrameBuffer};
 use engine::camera::Camera;
+use engine::objects::Object;
 // -----------------------------------------------------
 
 fn main() {
@@ -92,11 +92,7 @@ fn main() {
         [0.0, 0.0, 2.0, 1.0f32],
     ];
 
-    let mut Monke = Object::new(
-        monke_model,
-        "src/models/monke.obj",
-        &display,
-    );
+    let monke = Object::new(monke_model, "src/models/monke.obj", &display);
 
     let light = [1.4, 0.4, -0.7f32];
 
@@ -146,12 +142,13 @@ fn main() {
         .unwrap();
 
         // Create a framebuffer for off-screen rendering
-        let mut framebuffer: glium::framebuffer::SimpleFrameBuffer= glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
-            &display,
-            &texture,
-            &depthbuffer,
-        )
-        .unwrap();
+        let mut framebuffer: glium::framebuffer::SimpleFrameBuffer =
+            glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
+                &display,
+                &texture,
+                &depthbuffer,
+            )
+            .unwrap();
 
         let model = [
             [0.01, 0.0, 0.0, 0.0],
@@ -220,7 +217,8 @@ fn main() {
 
                 //--------------------------------- Render (post update) ---------------------------------
 
-                framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
+                framebuffer
+                    .clear_color_and_depth((105. / 255., 109. / 255., 219. / 255., 1.0), 1.0);
 
                 let uniforms = uniform! {
                     model: model,
@@ -240,8 +238,8 @@ fn main() {
                     )
                     .unwrap();
 
-                let monkeUniforms = uniform! {
-                    model: Monke.model,
+                let monke_uniforms = uniform! {
+                    model: monke.model,
                     view: camera.view_matrix(),
                     perspective: camera.perspective_matrix(),
                     u_light: light,
@@ -249,15 +247,9 @@ fn main() {
 
                 // target
                 framebuffer
-                    .draw(
-                        &Monke.vb,
-                        &Monke.ib,
-                        &program,
-                        &monkeUniforms,
-                        &params,
-                    )
+                    .draw(&monke.vb, &monke.ib, &program, &monke_uniforms, &params)
                     .unwrap();
-                }
+            }
 
             _ => {
                 return;

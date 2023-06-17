@@ -1,9 +1,9 @@
 //WIP
 
+use glium::{self, backend::Facade};
 use tobj;
-use glium::{self, backend::{glutin, Facade}};
 
-#[derive(Copy, Clone,Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Vertex {
     position: (f32, f32, f32),
     normal: [f32; 3],
@@ -12,18 +12,16 @@ pub struct Vertex {
 
 implement_vertex!(Vertex, position, normal, tex_coords);
 
-
 #[derive(Debug)]
-pub struct Object{
-    pub model : [[f32; 4]; 4],
-    pub vb : glium::VertexBuffer<Vertex>,
-    pub ib : glium::IndexBuffer<u32>,
+pub struct Object {
+    pub model: [[f32; 4]; 4],
+    pub vb: glium::VertexBuffer<Vertex>,
+    pub ib: glium::IndexBuffer<u32>,
 }
 
 impl Object {
     //load .obj file
     pub fn new(model: [[f32; 4]; 4], file_path: &str, display: &glium::Display) -> Object {
-
         let facade = display.get_context();
 
         let load_options = tobj::LoadOptions {
@@ -66,12 +64,7 @@ impl Object {
             &indicies,
         )
         .unwrap();
-        
-        Object {
-            model,
-            vb,
-            ib,
-        }
-    }
 
+        Object { model, vb, ib }
+    }
 }
