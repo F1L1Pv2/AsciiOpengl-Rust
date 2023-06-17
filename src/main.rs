@@ -6,7 +6,7 @@ use device_query::{ DeviceQuery, DeviceState, Keycode };
 use terminal_size::terminal_size;
 //------------------ My stuff --------------------------
 mod engine;
-use engine::core::{ Scene };
+use engine::scene::{ Scene };
 use engine::prefab::{ get_prefabs };
 use engine::ascii_render::{ Color, TerminalFrameBuffer };
 use engine::camera::Camera;
