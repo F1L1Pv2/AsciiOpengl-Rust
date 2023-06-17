@@ -1,18 +1,17 @@
 #[macro_use]
 extern crate glium;
 
-use device_query;
-use device_query::Keycode;
-use device_query::DeviceState;
-use device_query::DeviceQuery;
-
-use glium::debug;
+//--------------Terminal Stuff -------------------------
+use device_query::{ DeviceQuery, DeviceState, Keycode };
 use termion;
-
-mod teapot;
+//------------------ Teapot ----------------------------
+mod rawmodels;
+use rawmodels::teapot;
+//------------------ My stuff --------------------------
 mod engine;
 use engine::ascii_render::{ TerminalFrameBuffer, Color };
 use engine::matrices::{ perspective_matrix, view_matrix };
+//------------------------------------------------------
 
 
 fn main() {
