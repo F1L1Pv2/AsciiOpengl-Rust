@@ -55,7 +55,7 @@ pub fn get_prefabs() -> PrefabList {
         let path_str = path.to_str().unwrap().to_string();
 
         //name is the last part of the path
-        let name = path_str.split("/").last().unwrap().to_string();
+        let name = path_str.split('/').last().unwrap().to_string();
 
         prefabs.push(Prefab {
             name,
