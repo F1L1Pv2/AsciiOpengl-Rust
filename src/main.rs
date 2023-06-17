@@ -95,7 +95,11 @@ impl TerminalFrameBuffer {
                     let b = back_pixel & 0xff;
 
                     //calculate hsl
-                    let (h, s, l) = rgb_to_hsl(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
+                    let (h, s, l) = rgb_to_hsl(
+                        (r as f32) / 255.0,
+                        (g as f32) / 255.0,
+                        (b as f32) / 255.0
+                    );
 
                     //calculate character from l
                     let character_index = ((1.0 - l) * ((characters.len() - 1) as f32)) as usize;
@@ -226,6 +230,7 @@ fn main() {
         in vec3 normal;
 
         out vec3 v_normal;
+        out vec3 v_position;
 
         uniform mat4 perspective;
         uniform mat4 view;
@@ -235,22 +240,33 @@ fn main() {
             mat4 modelview = view * model;
             v_normal = transpose(inverse(mat3(modelview))) * normal;
             gl_Position = perspective * modelview * vec4(position, 1.0);
+            v_position = gl_Position.xyz/gl_Position.w;
         }
     "#;
 
     let fragment_shader_src =
         r#"
-        #version 150
+        #version 140
 
         in vec3 v_normal;
+        in vec3 v_position;
+
         out vec4 color;
+
         uniform vec3 u_light;
 
+        const vec3 ambient_color = vec3(0.2, 0.0, 0.0);
+        const vec3 diffuse_color = vec3(0.6, 0.0, 0.0);
+        const vec3 specular_color = vec3(1.0, 1.0, 1.0);
+
         void main() {
-            float brightness = dot(normalize(v_normal), normalize(u_light));
-            vec3 dark_color = vec3(0.6, 0.0, 0.0);
-            vec3 regular_color = vec3(1.0, 0.0, 0.0);
-            color = vec4(mix(dark_color, regular_color, brightness), 1.0);
+            float diffuse = max(dot(normalize(v_normal), normalize(u_light)), 0.0);
+
+            vec3 camera_dir = normalize(-v_position);
+            vec3 half_direction = normalize(normalize(u_light) + camera_dir);
+            float specular = pow(max(dot(half_direction, normalize(v_normal)), 0.0), 16.0);
+
+            color = vec4(ambient_color + diffuse * diffuse_color + specular * specular_color, 1.0);
         }
     "#;
 
@@ -390,7 +406,7 @@ fn main() {
                 }
 
                 // framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
-                framebuffer.clear_color_and_depth((0., 0., 0., 1.0), 1.0);
+                framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
                 let model = [
                     [0.01, 0.0, 0.0, 0.0],
