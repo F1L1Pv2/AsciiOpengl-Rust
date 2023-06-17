@@ -1,14 +1,14 @@
 #[macro_use]
 extern crate glium;
 
-
-use std::io::{BufWriter, Write};
+use std::io::{ BufWriter, Write };
 
 use device_query;
 use device_query::Keycode;
 use device_query::DeviceState;
 use device_query::DeviceQuery;
 
+use glium::debug;
 use termion;
 
 mod teapot;
@@ -20,7 +20,7 @@ struct TerminalFrameBuffer {
     height: usize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 struct Color {
     r: u8,
     g: u8,
@@ -32,64 +32,61 @@ impl Color {
         Color { r, g, b }
     }
 
-    fn rgbtohsv(&self) -> (f32, f32, f32) {
-        let r = self.r as f32 / 255.0;
-        let g = self.g as f32 / 255.0;
-        let b = self.b as f32 / 255.0;
+    fn hsltorgb(&self) -> Color {
+        let r = (self.r as f32) / 255.0;
+        let g = (self.g as f32) / 255.0;
+        let b = (self.b as f32) / 255.0;
 
-        let cmax = r.max(g).max(b);
-        let cmin = r.min(g).min(b);
+        let cmax = r.max(g.max(b));
+        let cmin = r.min(g.min(b));
         let delta = cmax - cmin;
 
-        let hue = if delta == 0.0 {
+        let h = if delta == 0.0 {
             0.0
         } else if cmax == r {
             60.0 * (((g - b) / delta) % 6.0)
         } else if cmax == g {
-            60.0 * (((b - r) / delta) + 2.0)
+            60.0 * ((b - r) / delta + 2.0)
         } else {
-            60.0 * (((r - g) / delta) + 4.0)
+            60.0 * ((r - g) / delta + 4.0)
         };
 
-        let saturation = if cmax == 0.0 { 0.0 } else { delta / cmax };
+        let l = (cmax + cmin) / 2.0;
 
-        let value = cmax;
+        let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
 
-        (hue, saturation, value)
-    }
+        let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
+        let x = c * (1.0 - (((h / 60.0) % 2.0) - 1.0).abs());
+        let m = l - c / 2.0;
 
-    fn hsvtorgb(hue: f32, saturation: f32, value: f32) -> Color {
-        let c = value * saturation;
-        let x = c * (1.0 - ((hue / 60.0) % 2.0 - 1.0).abs());
-        let m = value - c;
-
-        let (r, g, b) = if hue < 60.0 {
+        let (r, g, b) = if h < 60.0 {
             (c, x, 0.0)
-        } else if hue < 120.0 {
+        } else if h < 120.0 {
             (x, c, 0.0)
-        } else if hue < 180.0 {
+        } else if h < 180.0 {
             (0.0, c, x)
-        } else if hue < 240.0 {
+        } else if h < 240.0 {
             (0.0, x, c)
-        } else if hue < 300.0 {
+        } else if h < 300.0 {
             (x, 0.0, c)
         } else {
             (c, 0.0, x)
         };
 
-        Color::new(
-            ((r + m) * 255.0) as u8,
-            ((g + m) * 255.0) as u8,
-            ((b + m) * 255.0) as u8,
-        )
+        let r = ((r + m) * 255.0) as u8;
+        let g = ((g + m) * 255.0) as u8;
+        let b = ((b + m) * 255.0) as u8;
+
+        Color::new(r, g, b)
     }
 }
 
 impl TerminalFrameBuffer {
     fn new(width: usize, height: usize, initial_color: Color) -> TerminalFrameBuffer {
-        let initial_color_value = u32::from(initial_color.r) << 16
-            | u32::from(initial_color.g) << 8
-            | u32::from(initial_color.b);
+        let initial_color_value =
+            (u32::from(initial_color.r) << 16) |
+            (u32::from(initial_color.g) << 8) |
+            u32::from(initial_color.b);
         let framebuffer = TerminalFrameBuffer {
             front_buffer: vec![initial_color_value; width * height],
             back_buffer: vec![initial_color_value; width * height],
@@ -109,16 +106,17 @@ impl TerminalFrameBuffer {
                 write!(
                     out,
                     "\x1b[48;2;{};{};{}m  ",
-                    initial_color.r, initial_color.g, initial_color.b
-                )
-                .unwrap();
+                    initial_color.r,
+                    initial_color.g,
+                    initial_color.b
+                ).unwrap();
             }
             writeln!(out, "\x1b[0m").unwrap();
         }
         out.flush().unwrap();
     }
     fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
-        let color = u32::from(color.r) << 16 | u32::from(color.g) << 8 | u32::from(color.b);
+        let color = (u32::from(color.r) << 16) | (u32::from(color.g) << 8) | u32::from(color.b);
         //check if x and y are in bounds
         if x >= self.width || y >= self.height {
             return;
@@ -131,7 +129,6 @@ impl TerminalFrameBuffer {
     }
 
     fn draw_frame(&mut self) {
-
         let characters = vec![" ", ".", ",", ":", ";", "+", "*", "?", "%", "S", "#", "@"];
 
         let stdout = std::io::stdout();
@@ -141,18 +138,40 @@ impl TerminalFrameBuffer {
                 let front_pixel = self.get_pixel(x, y);
                 let back_pixel = self.back_buffer[y * self.width + x];
                 if front_pixel != back_pixel {
-
                     let r = (back_pixel >> 16) & 0xff;
                     let g = (back_pixel >> 8) & 0xff;
                     let b = back_pixel & 0xff;
 
-                    let (hue, saturation, brightness) = Color::new(r as u8, g as u8, b as u8)
-                        .rgbtohsv();
+                    //calculate hsl
 
-                    let character_color = Color::hsvtorgb(hue, saturation, 1.0);
+                    let r = (r as f32) / 255.0;
+                    let g = (g as f32) / 255.0;
+                    let b = (b as f32) / 255.0;
 
-                    let character = characters[(brightness * (characters.len() - 1) as f32)
-                        .round() as usize];
+                    let cmax = r.max(g.max(b));
+                    let cmin = r.min(g.min(b));
+                    let delta = cmax - cmin;
+
+                    let h = if delta == 0.0 {
+                        0.0
+                    } else if cmax == r {
+                        60.0 * (((g - b) / delta) % 6.0)
+                    } else if cmax == g {
+                        60.0 * ((b - r) / delta + 2.0)
+                    } else {
+                        60.0 * ((r - g) / delta + 4.0)
+                    };
+
+                    let l = (cmax + cmin) / 2.0;
+
+                    let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
+
+                    //calculate character from l
+
+                    let character_index = ((1.0 - l) * ((characters.len() - 1) as f32)) as usize;
+                    let character = characters[character_index];
+
+                    //calculate color from h and s
 
                     // write!(
                     //     out,
@@ -164,6 +183,44 @@ impl TerminalFrameBuffer {
                     //     back_pixel & 0xff,
                     // )
                     // .unwrap();
+
+                    let character_color_hsl = Color::new(
+                        (h * 255.0) as u8,
+                        (s * 255.0) as u8,
+                        (l * 255.0) as u8
+                    );
+
+                    //calculate rgb from hsl
+                    let h = (h * 255.0) / 360.0;
+                    let s = (s * 255.0) / 100.0;
+                    let l = (l * 255.0) / 100.0;
+
+                    let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
+                    let fx = c * (1.0 - (((h * 6.0) % 2.0) - 1.0).abs());
+                    let m = l - c / 2.0;
+
+                    let (r, g, b) = if h < 1.0 / 6.0 {
+                        (c, fx, 0.0)
+                    } else if h < 2.0 / 6.0 {
+                        (fx, c, 0.0)
+                    } else if h < 3.0 / 6.0 {
+                        (0.0, c, fx)
+                    } else if h < 4.0 / 6.0 {
+                        (0.0, fx, c)
+                    } else if h < 5.0 / 6.0 {
+                        (fx, 0.0, c)
+                    } else {
+                        (c, 0.0, fx)
+                    };
+
+                    let fr = ((r + m) * 255.0) as u8;
+                    let fg = ((g + m) * 255.0) as u8;
+                    let fb = ((b + m) * 255.0) as u8;
+
+                    let character_color = Color::new(fr, fg, fb);
+
+                    // let character_color = Color::new((h) as u8, (s) as u8, (l) as u8);
+                    // println!("{:?}", character_color);
 
                     write!(
                         out,
@@ -178,8 +235,7 @@ impl TerminalFrameBuffer {
                         character_color.b,
                         character,
                         character
-                    )
-                    .unwrap();
+                    ).unwrap();
                 }
             }
         }
@@ -199,42 +255,41 @@ impl TerminalFrameBuffer {
 
 fn main() {
     #[allow(unused_imports)]
-    use glium::{glutin, Surface};
+    use glium::{ glutin, Surface };
 
     let terminal_size = termion::terminal_size().unwrap();
     let terminal_size = (terminal_size.0 as u32, terminal_size.1 as u32);
 
     let mut terminal_fb = TerminalFrameBuffer::new(
-        terminal_size.0 as usize / 2,
+        (terminal_size.0 as usize) / 2,
         terminal_size.1 as usize,
         Color {
             r: 0,
             g: 0,
             b: 0,
-        },
+        }
     );
-
 
     let event_loop = glutin::event_loop::EventLoop::new();
     // let wb = glutin::window::WindowBuilder::new();
-    
-    //offscreen rendering
-    let wb = glutin::window::WindowBuilder::new().with_visible(false).with_inner_size(glutin::dpi::LogicalSize::new(terminal_size.0, terminal_size.1));
 
+    //offscreen rendering
+    let wb = glutin::window::WindowBuilder
+        ::new()
+        .with_visible(false)
+        .with_inner_size(glutin::dpi::LogicalSize::new(terminal_size.0, terminal_size.1));
 
     let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
     let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
     let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
-    let indices = glium::IndexBuffer::new(
-        &display,
-        glium::index::PrimitiveType::TrianglesList,
-        &teapot::INDICES,
-    )
-    .unwrap();
+    let indices = glium::IndexBuffer
+        ::new(&display, glium::index::PrimitiveType::TrianglesList, &teapot::INDICES)
+        .unwrap();
 
-    let vertex_shader_src = r#"
+    let vertex_shader_src =
+        r#"
         #version 150
 
         in vec3 position;
@@ -253,7 +308,8 @@ fn main() {
         }
     "#;
 
-    let fragment_shader_src = r#"
+    let fragment_shader_src =
+        r#"
         #version 150
 
         in vec3 v_normal;
@@ -268,9 +324,9 @@ fn main() {
         }
     "#;
 
-    let program =
-        glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None)
-            .unwrap();
+    let program = glium::Program
+        ::from_source(&display, vertex_shader_src, fragment_shader_src, None)
+        .unwrap();
 
     let mut player_pos = [0.0, 0.0, 0.0f32];
     let mut player_rot = [0.0, 0.0, 0.0f32];
@@ -279,12 +335,9 @@ fn main() {
 
     let mouse_sensitive = 0.001;
 
-
-
     let mut accumulator = std::time::Duration::new(0, 0);
     let fixed_timestep = std::time::Duration::from_nanos(16_666_667);
     let mut next_frame_time = std::time::Instant::now();
-
 
     let device_state = DeviceState::new();
 
@@ -298,41 +351,37 @@ fn main() {
         let mut move_up = false;
         let mut move_down = false;
 
+        let mut texture = glium::texture::Texture2d
+            ::empty_with_format(
+                &display,
+                glium::texture::UncompressedFloatFormat::U8U8U8U8,
+                glium::texture::MipmapsOption::NoMipmap,
+                terminal_size.0,
+                terminal_size.1
+            )
+            .unwrap();
 
-        let mut texture = glium::texture::Texture2d::empty_with_format(
-            &display,
-            glium::texture::UncompressedFloatFormat::U8U8U8U8,
-            glium::texture::MipmapsOption::NoMipmap,
-            terminal_size.0,
-            terminal_size.1,
-        )
-        .unwrap();
-    
         // Create a depth buffer for off-screen rendering
-        let mut depthbuffer = glium::framebuffer::DepthRenderBuffer::new(
-            &display,
-            glium::texture::DepthFormat::F32,
-            terminal_size.0,
-            terminal_size.1,
-        )
-        .unwrap();
-    
+        let mut depthbuffer = glium::framebuffer::DepthRenderBuffer
+            ::new(&display, glium::texture::DepthFormat::F32, terminal_size.0, terminal_size.1)
+            .unwrap();
+
         // Create a framebuffer for off-screen rendering
-        let mut framebuffer = glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
-            &display,
-            &texture,
-            &depthbuffer,
-        )
-        .unwrap();
+        let mut framebuffer = glium::framebuffer::SimpleFrameBuffer
+            ::with_depth_buffer(&display, &texture, &depthbuffer)
+            .unwrap();
 
         match event {
-            glutin::event::Event::WindowEvent { event, .. } => match event {
-                glutin::event::WindowEvent::CloseRequested => {
-                    *control_flow = glutin::event_loop::ControlFlow::Exit;
-                    return;
+            glutin::event::Event::WindowEvent { event, .. } =>
+                match event {
+                    glutin::event::WindowEvent::CloseRequested => {
+                        *control_flow = glutin::event_loop::ControlFlow::Exit;
+                        return;
+                    }
+                    _ => {
+                        return;
+                    }
                 }
-                _ => return,
-            },
 
             glutin::event::Event::MainEventsCleared => {
                 let now = std::time::Instant::now();
@@ -340,27 +389,43 @@ fn main() {
                 next_frame_time = now;
 
                 while accumulator >= fixed_timestep {
-
-
                     let keys: Vec<Keycode> = device_state.get_keys();
 
                     for key in keys {
                         match key {
-                            Keycode::W => move_forward = true,
-                            Keycode::S => move_backward = true,
-                            Keycode::A => move_left = true,
-                            Keycode::D => move_right = true,
-                            Keycode::Space => move_up = true,
-                            Keycode::LShift => move_down = true,
-                            Keycode::I => player_rot[0] -= 0.05,
-                            Keycode::K => player_rot[0] += 0.05,
-                            Keycode::J => player_rot[1] -= 0.05,
-                            Keycode::L => player_rot[1] += 0.05,
+                            Keycode::W => {
+                                move_forward = true;
+                            }
+                            Keycode::S => {
+                                move_backward = true;
+                            }
+                            Keycode::A => {
+                                move_left = true;
+                            }
+                            Keycode::D => {
+                                move_right = true;
+                            }
+                            Keycode::Space => {
+                                move_up = true;
+                            }
+                            Keycode::LShift => {
+                                move_down = true;
+                            }
+                            Keycode::I => {
+                                player_rot[0] -= 0.05;
+                            }
+                            Keycode::K => {
+                                player_rot[0] += 0.05;
+                            }
+                            Keycode::J => {
+                                player_rot[1] -= 0.05;
+                            }
+                            Keycode::L => {
+                                player_rot[1] += 0.05;
+                            }
                             _ => (),
                         }
-                    }           
-
-
+                    }
 
                     accumulator -= fixed_timestep;
 
@@ -394,11 +459,7 @@ fn main() {
                     }
                 }
 
-                // let mut target = display.draw();
-                // target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
-
-                // framebuffer.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
-                framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+                framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
 
                 let model = [
                     [0.01, 0.0, 0.0, 0.0],
@@ -412,7 +473,7 @@ fn main() {
                 let perspective = {
                     // let (width, height) = target.get_dimensions();
                     let (width, height) = terminal_size;
-                    let aspect_ratio = height as f32 / width as f32;
+                    let aspect_ratio = (height as f32) / (width as f32);
 
                     let fov: f32 = 3.141592 / 3.0;
                     let zfar = 1024.0;
@@ -446,34 +507,36 @@ fn main() {
                         (&positions, &normals),
                         &indices,
                         &program,
-                        &uniform! { model: model, view: view, perspective: perspective, u_light: light },
-                        &params,
+                        &(uniform! { model: model, view: view, perspective: perspective, u_light: light }),
+                        &params
                     )
                     .unwrap();
 
                 // target.finish().unwrap();
+            }
 
-
-        
-
-
-            },
-
-            _ => return,
+            _ => {
+                return;
+            }
         }
-
 
         //get pixels from display
         // let pixels: glium::texture::RawImage2d<u8> = display.read_front_buffer().unwrap();
         let pixels: glium::texture::RawImage2d<u8> = texture.read();
         terminal_fb.clear();
-        for i in 0..pixels.data.len()/4 {
-            let r = pixels.data[i*4];
-            let g = pixels.data[i*4+1];
-            let b = pixels.data[i*4+2];
-             
-            let x = ((i % pixels.width as usize) * terminal_size.0 as usize / pixels.width as usize) - terminal_size.0 as usize / 4;
-            let y = terminal_size.1 as usize - ((i / pixels.width as usize) * terminal_size.1 as usize / pixels.height as usize);
+        for i in 0..pixels.data.len() / 4 {
+            let r = pixels.data[i * 4];
+            let g = pixels.data[i * 4 + 1];
+            let b = pixels.data[i * 4 + 2];
+
+            let x =
+                ((i % (pixels.width as usize)) * (terminal_size.0 as usize)) /
+                    (pixels.width as usize) -
+                (terminal_size.0 as usize) / 4;
+            let y =
+                (terminal_size.1 as usize) -
+                ((i / (pixels.width as usize)) * (terminal_size.1 as usize)) /
+                    (pixels.height as usize);
 
             let color = Color {
                 r: r,
@@ -481,15 +544,11 @@ fn main() {
                 b: b,
             };
 
-            terminal_fb.set_pixel(x, y, color);            
-
+            terminal_fb.set_pixel(x, y, color);
         }
         terminal_fb.draw_frame();
-
     });
 }
-
-
 
 fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
     [
@@ -529,7 +588,8 @@ fn translate(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
 
 //create macro for matrix multiplication
 macro_rules! mat_mul {
-    ($a:expr, $b:expr) => {{
+    ($a:expr, $b:expr) => {
+        {
         let mut result = [[0.0; 4]; 4];
         for i in 0..4 {
             for j in 0..4 {
@@ -539,11 +599,11 @@ macro_rules! mat_mul {
             }
         }
         result
-    }};
+        }
+    };
 }
 
 fn view_matrix(position: &[f32; 3], rotation: &[f32; 3]) -> [[f32; 4]; 4] {
-
     let mut m = [
         [1.0, 0.0, 0.0, 0.0f32],
         [0.0, 1.0, 0.0, 0.0f32],
