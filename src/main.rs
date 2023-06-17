@@ -2,53 +2,49 @@
 extern crate glium;
 
 //-------------- Terminal Stuff ------------------------
-use device_query::{DeviceQuery, DeviceState, Keycode};
+use device_query::{ DeviceQuery, DeviceState, Keycode };
 use terminal_size::terminal_size;
 //------------------ My stuff --------------------------
 mod engine;
-use engine::prefab::{get_prefabs};
-use engine::ascii_render::{Color, TerminalFrameBuffer};
+use engine::core::{ Scene };
+use engine::prefab::{ get_prefabs };
+use engine::ascii_render::{ Color, TerminalFrameBuffer };
 use engine::camera::Camera;
-use engine::object::Object;
 // -----------------------------------------------------
 
 fn main() {
-    use glium::{glutin, Surface};
+    use glium::{ glutin, Surface };
 
     let terminal_res = terminal_size().unwrap();
-    let mut terminal_res: (u32, u32) = (u32::from(terminal_res.0 .0), u32::from(terminal_res.1 .0));
+    let mut terminal_res: (u32, u32) = (u32::from(terminal_res.0.0), u32::from(terminal_res.1.0));
 
     let mut terminal_fb = TerminalFrameBuffer::new(
         (terminal_res.0 as usize) / 2,
         terminal_res.1 as usize,
-        Color { r: 0, g: 0, b: 0 },
+        Color { r: 0, g: 0, b: 0 }
     );
 
     let event_loop = glutin::event_loop::EventLoop::new();
-    let wb = glutin::window::WindowBuilder::new()
+    let wb = glutin::window::WindowBuilder
+        ::new()
         .with_visible(false)
-        .with_inner_size(glutin::dpi::LogicalSize::new(
-            terminal_res.0,
-            terminal_res.1,
-        ));
+        .with_inner_size(glutin::dpi::LogicalSize::new(terminal_res.0, terminal_res.1));
 
     let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
     //read vertex shader source code from file
-    let vertex_shader_src = std::fs::read_to_string("src/shaders/vertex_shader.glsl")
+    let vertex_shader_src = std::fs
+        ::read_to_string("src/shaders/vertex_shader.glsl")
         .expect("Failed to read vertex shader source code from file");
 
-    let fragment_shader_src = std::fs::read_to_string("src/shaders/fragment_shader.glsl")
+    let fragment_shader_src = std::fs
+        ::read_to_string("src/shaders/fragment_shader.glsl")
         .expect("Failed to read fragment shader source code from file");
 
-    let program = glium::Program::from_source(
-        &display,
-        vertex_shader_src.as_str(),
-        fragment_shader_src.as_str(),
-        None,
-    )
-    .unwrap();
+    let program = glium::Program
+        ::from_source(&display, vertex_shader_src.as_str(), fragment_shader_src.as_str(), None)
+        .unwrap();
 
     let mut accumulator = std::time::Duration::new(0, 0);
     let fixed_timestep = std::time::Duration::from_nanos(16_666_667);
@@ -66,39 +62,39 @@ fn main() {
 
     let device_state = DeviceState::new();
 
-    let mut camera = Camera::new(
-        [0.0, 0.0, 0.0f32],
-        [0.0, 0.0, 0.0f32],
-        0.05,
-        0.05,
-        terminal_res,
+    let mut camera = Camera::new([0.0, 0.0, 0.0f32], [0.0, 0.0, 0.0f32], 0.05, 0.05, terminal_res);
+
+    let mut prefab_list = get_prefabs();
+
+    let mut scene = Scene::new();
+
+    scene.add_object(
+        prefab_list.load_obj(
+            &display,
+            "monke.obj",
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 2.0, 1.0f32],
+            ].into()
+        )
     );
 
-    let mut prefab_list = get_prefabs(&display);
+    scene.add_object(
+        prefab_list.load_obj(
+            &display,
+            "cube.obj",
+            [
+                [0.5, 0.0, 0.0, 0.0],
+                [0.0, 0.5, 0.0, 0.0],
+                [0.0, 0.0, 0.5, 0.0],
+                [2.0, 0.0, 2.0, 1.0f32],
+            ].into()
+        )
+    );
 
-    // for i in 0..prefab_list.prefabs.len() {
-    //     println!("Prefab: {}", prefab_list.prefabs[i].name);
-    // }
-
-    // return;
-
-    let monke = prefab_list.get_prefab("monke.obj".to_string()).unwrap();
-    let mut monke = prefab_list.load_object(&display, monke);
-    monke.model = [
-            [1.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 2.0, 1.0f32],
-    ];
-
-    let mut cube = prefab_list.get_prefab("cube.obj".to_string()).unwrap();
-    let mut cube = prefab_list.load_object(&display, cube);
-    cube.model = [
-            [0.5, 0.0, 0.0, 0.0],
-            [0.0, 0.5, 0.0, 0.0],
-            [0.0, 0.0, 0.5, 0.0],
-            [2.0, 0.0, 2.0, 1.0f32],
-    ];
+    drop(prefab_list);
 
     let light = [1.4, 0.4, -0.7f32];
 
@@ -107,20 +103,20 @@ fn main() {
         // Check res and update if changed
         let new_terminal_res = terminal_size().unwrap();
         let new_terminal_res: (u32, u32) = (
-            u32::from(new_terminal_res.0 .0),
-            u32::from(new_terminal_res.1 .0),
+            u32::from(new_terminal_res.0.0),
+            u32::from(new_terminal_res.1.0),
         );
         if new_terminal_res != terminal_res {
             terminal_res = new_terminal_res;
             terminal_fb = TerminalFrameBuffer::new(
                 (terminal_res.0 as usize) / 2,
                 terminal_res.1 as usize,
-                Color { r: 0, g: 0, b: 0 },
+                Color { r: 0, g: 0, b: 0 }
             );
             TerminalFrameBuffer::update_res(
                 &mut terminal_fb,
                 new_terminal_res.0 as usize,
-                new_terminal_res.1 as usize,
+                new_terminal_res.1 as usize
             );
         }
 
@@ -129,31 +125,24 @@ fn main() {
         let mut move_vector = [0, 0, 0];
         let mut mouse_vector = [0, 0];
 
-        let texture = glium::texture::Texture2d::empty_with_format(
-            &display,
-            glium::texture::UncompressedFloatFormat::U8U8U8U8,
-            glium::texture::MipmapsOption::NoMipmap,
-            terminal_res.0,
-            terminal_res.1,
-        )
-        .unwrap();
+        let texture = glium::texture::Texture2d
+            ::empty_with_format(
+                &display,
+                glium::texture::UncompressedFloatFormat::U8U8U8U8,
+                glium::texture::MipmapsOption::NoMipmap,
+                terminal_res.0,
+                terminal_res.1
+            )
+            .unwrap();
 
         // Create a depth buffer for off-screen rendering
-        let depthbuffer = glium::framebuffer::DepthRenderBuffer::new(
-            &display,
-            glium::texture::DepthFormat::F32,
-            terminal_res.0,
-            terminal_res.1,
-        )
-        .unwrap();
+        let depthbuffer = glium::framebuffer::DepthRenderBuffer
+            ::new(&display, glium::texture::DepthFormat::F32, terminal_res.0, terminal_res.1)
+            .unwrap();
 
         // Create a framebuffer for off-screen rendering
-        let mut framebuffer: glium::framebuffer::SimpleFrameBuffer =
-            glium::framebuffer::SimpleFrameBuffer::with_depth_buffer(
-                &display,
-                &texture,
-                &depthbuffer,
-            )
+        let mut framebuffer: glium::framebuffer::SimpleFrameBuffer = glium::framebuffer::SimpleFrameBuffer
+            ::with_depth_buffer(&display, &texture, &depthbuffer)
             .unwrap();
 
         match event {
@@ -216,32 +205,45 @@ fn main() {
 
                 //--------------------------------- Render (post update) ---------------------------------
 
-                framebuffer
-                    .clear_color_and_depth((105. / 255., 109. / 255., 219. / 255., 1.0), 1.0);
+                framebuffer.clear_color_and_depth(
+                    (105.0 / 255.0, 109.0 / 255.0, 219.0 / 255.0, 1.0),
+                    1.0
+                );
 
-                
-                let cube_uniforms = uniform! {
-                    model: cube.model,
-                    view: camera.view_matrix(),
-                    perspective: camera.perspective_matrix(),
-                    u_light: light,
-                };
+                for object in scene.objects.iter() {
+                    let uniforms =
+                        uniform! {
+                        model: object.model,
+                        view: camera.view_matrix(),
+                        perspective: camera.perspective_matrix(),
+                        u_light: light,
+                    };
 
-                framebuffer
-                    .draw(&cube.vb, &cube.ib, &program, &cube_uniforms, &params)
-                    .unwrap();
-                
-                let monke_uniforms = uniform! {
-                    model: monke.model,
-                    view: camera.view_matrix(),
-                    perspective: camera.perspective_matrix(),
-                    u_light: light,
-                };
+                    framebuffer.draw(&object.vb, &object.ib, &program, &uniforms, &params).unwrap();
+                }
 
-                // target
-                framebuffer
-                    .draw(&monke.vb, &monke.ib, &program, &monke_uniforms, &params)
-                    .unwrap();
+                // let cube_uniforms = uniform! {
+                //     model: cube.model,
+                //     view: camera.view_matrix(),
+                //     perspective: camera.perspective_matrix(),
+                //     u_light: light,
+                // };
+
+                // framebuffer
+                //     .draw(&cube.vb, &cube.ib, &program, &cube_uniforms, &params)
+                //     .unwrap();
+
+                // let monke_uniforms = uniform! {
+                //     model: monke.model,
+                //     view: camera.view_matrix(),
+                //     perspective: camera.perspective_matrix(),
+                //     u_light: light,
+                // };
+
+                // // target
+                // framebuffer
+                //     .draw(&monke.vb, &monke.ib, &program, &monke_uniforms, &params)
+                //     .unwrap();
             }
 
             _ => {
@@ -257,12 +259,14 @@ fn main() {
             let g = pixels.data[i * 4 + 1];
             let b = pixels.data[i * 4 + 2];
 
-            let x = ((i % (pixels.width as usize)) * (terminal_res.0 as usize))
-                / (pixels.width as usize)
-                - (terminal_res.0 as usize) / 4;
-            let y = (terminal_res.1 as usize)
-                - ((i / (pixels.width as usize)) * (terminal_res.1 as usize))
-                    / (pixels.height as usize);
+            let x =
+                ((i % (pixels.width as usize)) * (terminal_res.0 as usize)) /
+                    (pixels.width as usize) -
+                (terminal_res.0 as usize) / 4;
+            let y =
+                (terminal_res.1 as usize) -
+                ((i / (pixels.width as usize)) * (terminal_res.1 as usize)) /
+                    (pixels.height as usize);
 
             let color = Color { r, g, b };
 
