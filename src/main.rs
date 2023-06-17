@@ -10,6 +10,7 @@ use engine::core::{ Scene };
 use engine::prefab::{ get_prefabs };
 use engine::ascii_render::{ Color, TerminalFrameBuffer };
 use engine::camera::Camera;
+use engine::matrices::{ model_matrix };
 // -----------------------------------------------------
 
 fn main() {
@@ -72,12 +73,11 @@ fn main() {
         prefab_list.load_obj(
             &display,
             "monke.obj",
-            [
-                [1.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 0.0],
-                [0.0, 0.0, 2.0, 1.0f32],
-            ].into()
+            model_matrix(
+                (&[0.0, 0.0, 2.0]).into(),
+                (&[0.0, 0.0, 0.0]).into(),
+                (&[1.0, 1.0, 1.0]).into()
+            ).into()
         )
     );
 
@@ -85,12 +85,11 @@ fn main() {
         prefab_list.load_obj(
             &display,
             "cube.obj",
-            [
-                [0.5, 0.0, 0.0, 0.0],
-                [0.0, 0.5, 0.0, 0.0],
-                [0.0, 0.0, 0.5, 0.0],
-                [2.0, 0.0, 2.0, 1.0f32],
-            ].into()
+            model_matrix(
+                (&[4.0, 0.0, 2.0]).into(),
+                (&[0.0, 0.0, 0.0]).into(),
+                (&[1.0, 1.0, 1.0]).into()
+            ).into()
         )
     );
 

@@ -25,7 +25,7 @@ fn rotate_z(angle: f32) -> [[f32; 4]; 4] {
     ]
 }
 
-fn scale(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
+fn scale_mat(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
     [
         [x, 0.0, 0.0, 0.0],
         [0.0, y, 0.0, 0.0],
@@ -84,6 +84,18 @@ pub fn identity_matrix() -> [[f32; 4]; 4] {
         [0.0, 0.0, 1.0, 0.0f32],
         [0.0, 0.0, 0.0, 1.0f32],
     ]
+}
+
+pub fn model_matrix(position: &[f32; 3], rotation: &[f32; 3], scale: &[f32; 3]) -> [[f32; 4]; 4] {
+    let mut m = identity_matrix();
+
+    m = mat_mul!(m, translate(position[0], position[1], position[2]));
+    m = mat_mul!(m, rotate_x(rotation[0]));
+    m = mat_mul!(m, rotate_y(rotation[1]));
+    m = mat_mul!(m, rotate_z(rotation[2]));
+    m = mat_mul!(m, scale_mat(scale[0], scale[1], scale[2]));
+
+    m
 }
 
 pub fn perspective_matrix(terminal_size: (u32, u32)) -> [[f32; 4]; 4] {
