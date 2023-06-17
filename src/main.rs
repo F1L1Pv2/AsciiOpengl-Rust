@@ -12,7 +12,6 @@ use glium::debug;
 use termion;
 
 mod teapot;
-
 struct TerminalFrameBuffer {
     front_buffer: Vec<u32>,
     back_buffer: Vec<u32>,
@@ -30,54 +29,6 @@ struct Color {
 impl Color {
     fn new(r: u8, g: u8, b: u8) -> Color {
         Color { r, g, b }
-    }
-
-    fn hsltorgb(&self) -> Color {
-        let r = (self.r as f32) / 255.0;
-        let g = (self.g as f32) / 255.0;
-        let b = (self.b as f32) / 255.0;
-
-        let cmax = r.max(g.max(b));
-        let cmin = r.min(g.min(b));
-        let delta = cmax - cmin;
-
-        let h = if delta == 0.0 {
-            0.0
-        } else if cmax == r {
-            60.0 * (((g - b) / delta) % 6.0)
-        } else if cmax == g {
-            60.0 * ((b - r) / delta + 2.0)
-        } else {
-            60.0 * ((r - g) / delta + 4.0)
-        };
-
-        let l = (cmax + cmin) / 2.0;
-
-        let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
-
-        let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
-        let x = c * (1.0 - (((h / 60.0) % 2.0) - 1.0).abs());
-        let m = l - c / 2.0;
-
-        let (r, g, b) = if h < 60.0 {
-            (c, x, 0.0)
-        } else if h < 120.0 {
-            (x, c, 0.0)
-        } else if h < 180.0 {
-            (0.0, c, x)
-        } else if h < 240.0 {
-            (0.0, x, c)
-        } else if h < 300.0 {
-            (x, 0.0, c)
-        } else {
-            (c, 0.0, x)
-        };
-
-        let r = ((r + m) * 255.0) as u8;
-        let g = ((g + m) * 255.0) as u8;
-        let b = ((b + m) * 255.0) as u8;
-
-        Color::new(r, g, b)
     }
 }
 
@@ -143,96 +94,26 @@ impl TerminalFrameBuffer {
                     let b = back_pixel & 0xff;
 
                     //calculate hsl
-
-                    let r = (r as f32) / 255.0;
-                    let g = (g as f32) / 255.0;
-                    let b = (b as f32) / 255.0;
-
-                    let cmax = r.max(g.max(b));
-                    let cmin = r.min(g.min(b));
-                    let delta = cmax - cmin;
-
-                    let h = if delta == 0.0 {
-                        0.0
-                    } else if cmax == r {
-                        60.0 * (((g - b) / delta) % 6.0)
-                    } else if cmax == g {
-                        60.0 * ((b - r) / delta + 2.0)
-                    } else {
-                        60.0 * ((r - g) / delta + 4.0)
-                    };
-
-                    let l = (cmax + cmin) / 2.0;
-
-                    let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
+                    let (h, s, l) = rgb_to_hsl(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0);
 
                     //calculate character from l
-
                     let character_index = ((1.0 - l) * ((characters.len() - 1) as f32)) as usize;
                     let character = characters[character_index];
 
                     //calculate color from h and s
-
-                    // write!(
-                    //     out,
-                    //     "\x1B[{};{}H\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m  ",
-                    //     y + 1,
-                    //     x * 2 + 1,
-                    //     back_pixel >> 16,
-                    //     (back_pixel >> 8) & 0xff,
-                    //     back_pixel & 0xff,
-                    // )
-                    // .unwrap();
-
-                    let character_color_hsl = Color::new(
-                        (h * 255.0) as u8,
-                        (s * 255.0) as u8,
-                        (l * 255.0) as u8
-                    );
-
-                    //calculate rgb from hsl
-                    let h = (h * 255.0) / 360.0;
-                    let s = (s * 255.0) / 100.0;
-                    let l = (l * 255.0) / 100.0;
-
-                    let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
-                    let fx = c * (1.0 - (((h * 6.0) % 2.0) - 1.0).abs());
-                    let m = l - c / 2.0;
-
-                    let (r, g, b) = if h < 1.0 / 6.0 {
-                        (c, fx, 0.0)
-                    } else if h < 2.0 / 6.0 {
-                        (fx, c, 0.0)
-                    } else if h < 3.0 / 6.0 {
-                        (0.0, c, fx)
-                    } else if h < 4.0 / 6.0 {
-                        (0.0, fx, c)
-                    } else if h < 5.0 / 6.0 {
-                        (fx, 0.0, c)
-                    } else {
-                        (c, 0.0, fx)
-                    };
-
-                    let fr = ((r + m) * 255.0) as u8;
-                    let fg = ((g + m) * 255.0) as u8;
-                    let fb = ((b + m) * 255.0) as u8;
-
-                    let character_color = Color::new(fr, fg, fb);
-
-                    // let character_color = Color::new((h) as u8, (s) as u8, (l) as u8);
-                    // println!("{:?}", character_color);
+                    let (fr, fg, fb) = hsl_to_rgb(h, s, 0.5);
 
                     write!(
                         out,
                         "\x1B[{};{}H\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m{}{}",
                         y + 1,
                         x * 2 + 1,
-                        back_pixel >> 16,
-                        (back_pixel >> 8) & 0xff,
-                        back_pixel & 0xff,
-                        character_color.r,
-                        character_color.g,
-                        character_color.b,
+                        r,
+                        g,
+                        b,
+                        fr,
+                        fg,
+                        fb,
                         character,
                         character
                     ).unwrap();
@@ -251,6 +132,54 @@ impl TerminalFrameBuffer {
     fn swap_buffers(&mut self) {
         std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
     }
+}
+
+fn rgb_to_hsl(r: f32, g: f32, b: f32) -> (f32, f32, f32) {
+    let cmax = r.max(g.max(b));
+    let cmin = r.min(g.min(b));
+    let delta = cmax - cmin;
+
+    let h = if delta == 0.0 {
+        0.0
+    } else if cmax == r {
+        60.0 * (((g - b) / delta) % 6.0)
+    } else if cmax == g {
+        60.0 * ((b - r) / delta + 2.0)
+    } else {
+        60.0 * ((r - g) / delta + 4.0)
+    };
+
+    let l = (cmax + cmin) / 2.0;
+
+    let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
+
+    (h, s, l)
+}
+
+fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
+    let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
+    let x = c * (1.0 - (((h / 60.0) % 2.0) - 1.0).abs());
+    let m = l - c / 2.0;
+
+    let (r, g, b) = if h < 60.0 {
+        (c, x, 0.0)
+    } else if h < 120.0 {
+        (x, c, 0.0)
+    } else if h < 180.0 {
+        (0.0, c, x)
+    } else if h < 240.0 {
+        (0.0, x, c)
+    } else if h < 300.0 {
+        (x, 0.0, c)
+    } else {
+        (c, 0.0, x)
+    };
+
+    let r = ((r + m) * 255.0) as u8;
+    let g = ((g + m) * 255.0) as u8;
+    let b = ((b + m) * 255.0) as u8;
+
+    (r, g, b)
 }
 
 fn main() {
