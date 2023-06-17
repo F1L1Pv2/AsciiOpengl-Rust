@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate glium;
 
+use std::arch::x86_64::_MM_FROUND_TO_POS_INF;
+
 //--------------Terminal Stuff -------------------------
 use device_query::{ DeviceQuery, DeviceState, Keycode };
 use terminal_size::{ terminal_size };
@@ -9,10 +11,10 @@ mod rawmodels;
 use rawmodels::teapot;
 //------------------ My stuff --------------------------
 mod engine;
+use engine::camera::Camera;
 use engine::ascii_render::{ TerminalFrameBuffer, Color };
 use engine::matrices::{ perspective_matrix, view_matrix };
 //------------------------------------------------------
-
 
 fn main() {
     #[allow(unused_imports)]
@@ -47,38 +49,47 @@ fn main() {
         .unwrap();
 
     //read vertex shader source code from file
-    let vertex_shader_src = std::fs::read_to_string("src/shaders/vertex_shader.glsl")
+    let vertex_shader_src = std::fs
+        ::read_to_string("src/shaders/vertex_shader.glsl")
         .expect("Failed to read vertex shader source code from file");
 
-    let fragment_shader_src = std::fs::read_to_string("src/shaders/fragment_shader.glsl")
+    let fragment_shader_src = std::fs
+        ::read_to_string("src/shaders/fragment_shader.glsl")
         .expect("Failed to read fragment shader source code from file");
 
     let program = glium::Program
         ::from_source(&display, vertex_shader_src.as_str(), fragment_shader_src.as_str(), None)
         .unwrap();
 
-    let mut player_pos = [0.0, 0.0, 0.0f32];
-    let mut player_rot = [0.0, 0.0, 0.0f32];
-
-    let move_speed = 0.05;
-
-    // let mouse_sensitive = 0.001;
-
     let mut accumulator = std::time::Duration::new(0, 0);
     let fixed_timestep = std::time::Duration::from_nanos(16_666_667);
     let mut next_frame_time = std::time::Instant::now();
 
+    let params = glium::DrawParameters {
+        depth: glium::Depth {
+            test: glium::draw_parameters::DepthTest::IfLess,
+            write: true,
+            ..Default::default()
+        },
+        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+        ..Default::default()
+    };
+
     let device_state = DeviceState::new();
+
+    let mut Camera = Camera::new(
+        [0.0, 0.0, 0.0f32],
+        [0.0, 0.0, 0.0f32],
+        0.05,
+        0.05,
+        terminal_size
+    );
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Poll;
 
-        let mut move_forward = false;
-        let mut move_backward = false;
-        let mut move_left = false;
-        let mut move_right = false;
-        let mut move_up = false;
-        let mut move_down = false;
+        let mut move_vector = [0, 0, 0];
+        let mut mouse_vector = [0, 0];
 
         let texture = glium::texture::Texture2d
             ::empty_with_format(
@@ -100,6 +111,13 @@ fn main() {
             ::with_depth_buffer(&display, &texture, &depthbuffer)
             .unwrap();
 
+        let model = [
+            [0.01, 0.0, 0.0, 0.0],
+            [0.0, 0.01, 0.0, 0.0],
+            [0.0, 0.0, 0.01, 0.0],
+            [0.0, 0.0, 2.0, 1.0f32],
+        ];
+
         match event {
             glutin::event::Event::WindowEvent { event, .. } =>
                 match event {
@@ -118,115 +136,68 @@ fn main() {
                 next_frame_time = now;
 
                 while accumulator >= fixed_timestep {
+
+//--------------------------------- Sort of a game loop ---------------------------------
+
                     let keys: Vec<Keycode> = device_state.get_keys();
 
                     for key in keys {
                         match key {
                             Keycode::W => {
-                                move_forward = true;
+                                move_vector[2] = 1;
                             }
                             Keycode::S => {
-                                move_backward = true;
+                                move_vector[2] = -1;
                             }
                             Keycode::A => {
-                                move_left = true;
+                                move_vector[0] = -1;
                             }
                             Keycode::D => {
-                                move_right = true;
+                                move_vector[0] = 1;
                             }
                             Keycode::Space => {
-                                move_up = true;
+                                move_vector[1] = 1;
                             }
                             Keycode::LShift => {
-                                move_down = true;
+                                move_vector[1] = -1;
                             }
                             Keycode::I => {
-                                player_rot[0] -= 0.05;
+                                mouse_vector[1] = 1;
                             }
                             Keycode::K => {
-                                player_rot[0] += 0.05;
+                                mouse_vector[1] = -1;
                             }
                             Keycode::J => {
-                                player_rot[1] -= 0.05;
+                                mouse_vector[0] = -1;
                             }
                             Keycode::L => {
-                                player_rot[1] += 0.05;
+                                mouse_vector[0] = 1;
                             }
                             _ => (),
                         }
                     }
-
+                    Camera.update(terminal_size, move_vector, mouse_vector);
                     accumulator -= fixed_timestep;
-
-                    // Update player position and rotation
-                    if move_forward {
-                        player_pos[0] += player_rot[1].sin() * move_speed;
-                        player_pos[2] += player_rot[1].cos() * move_speed;
-                    }
-
-                    if move_backward {
-                        player_pos[0] -= player_rot[1].sin() * move_speed;
-                        player_pos[2] -= player_rot[1].cos() * move_speed;
-                    }
-
-                    if move_left {
-                        player_pos[0] -= player_rot[1].cos() * move_speed;
-                        player_pos[2] += player_rot[1].sin() * move_speed;
-                    }
-
-                    if move_right {
-                        player_pos[0] += player_rot[1].cos() * move_speed;
-                        player_pos[2] -= player_rot[1].sin() * move_speed;
-                    }
-
-                    if move_up {
-                        player_pos[1] += move_speed;
-                    }
-
-                    if move_down {
-                        player_pos[1] -= move_speed;
-                    }
                 }
+
+
+//--------------------------------- Render (post update) ---------------------------------
 
                 // framebuffer.clear_color_and_depth((105./255., 109./255., 219./255., 1.0), 1.0);
                 framebuffer.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
-                let model = [
-                    [0.01, 0.0, 0.0, 0.0],
-                    [0.0, 0.01, 0.0, 0.0],
-                    [0.0, 0.0, 0.01, 0.0],
-                    [0.0, 0.0, 2.0, 1.0f32],
-                ];
-
-                let params = glium::DrawParameters {
-                    depth: glium::Depth {
-                        test: glium::draw_parameters::DepthTest::IfLess,
-                        write: true,
-                        ..Default::default()
-                    },
-                    //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
-                    ..Default::default()
-                };
-
-                let uniforms = uniform! {
+                let uniforms =
+                    uniform! {
                     model: model,
-                    view: view_matrix(&player_pos, &player_rot),
-                    perspective: perspective_matrix(terminal_size),
+                    view: Camera.view_matrix(),
+                    perspective: Camera.perspective_matrix(),
                     u_light: [-1.0, 0.4, 0.9f32],
                 };
 
                 // target
                 framebuffer
-                    .draw(
-                        (&positions, &normals),
-                        &indices,
-                        &program,
-                        &uniforms,
-                        &params
-                    )
+                    .draw((&positions, &normals), &indices, &program, &uniforms, &params)
                     .unwrap();
-
-                // target.finish().unwrap();
             }
 
             _ => {
