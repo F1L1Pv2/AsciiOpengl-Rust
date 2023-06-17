@@ -68,6 +68,15 @@ macro_rules! mat_mul {
 //     ]
 // };
 
+pub fn identity_matrix() -> [[f32; 4]; 4] {
+    [
+        [1.0, 0.0, 0.0, 0.0f32],
+        [0.0, 1.0, 0.0, 0.0f32],
+        [0.0, 0.0, 1.0, 0.0f32],
+        [0.0, 0.0, 0.0, 1.0f32],
+    ]
+}
+
 pub fn perspective_matrix(terminal_size: (u32, u32)) -> [[f32; 4]; 4] {
     let (width, height) = terminal_size;
     let width = width as u16;

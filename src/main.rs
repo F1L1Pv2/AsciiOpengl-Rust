@@ -9,9 +9,10 @@ mod rawmodels;
 use rawmodels::teapot;
 //------------------ My stuff --------------------------
 mod engine;
+use engine::prefab::{get_prefabs};
 use engine::ascii_render::{Color, TerminalFrameBuffer};
 use engine::camera::Camera;
-use engine::objects::Object;
+use engine::object::Object;
 // -----------------------------------------------------
 
 fn main() {
@@ -85,14 +86,22 @@ fn main() {
         terminal_res,
     );
 
-    let monke_model = [
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 2.0, 1.0f32],
-    ];
+    let mut prefab_list = get_prefabs(&display);
 
-    let monke = Object::new(monke_model, "src/models/monke.obj", &display);
+    // for i in 0..prefab_list.prefabs.len() {
+    //     println!("Prefab: {}", prefab_list.prefabs[i].name);
+    // }
+
+    // return;
+
+    let monke = prefab_list.get_prefab("monke.obj".to_string()).unwrap();
+    let mut monke = prefab_list.load_object(&display, monke);
+    monke.model = [
+            [1.0, 0.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 2.0, 1.0f32],
+    ];
 
     let light = [1.4, 0.4, -0.7f32];
 
