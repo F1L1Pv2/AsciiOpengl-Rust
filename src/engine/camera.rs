@@ -22,7 +22,7 @@ impl Camera {
     }
 
     pub fn view_matrix(&self) -> [[f32; 4]; 4] {
-        view_matrix(&self.player_pos, &self.player_rot)
+        self.view
     }
 
     pub fn perspective_matrix(&self) -> [[f32; 4]; 4] {
