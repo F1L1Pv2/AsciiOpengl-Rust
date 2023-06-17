@@ -4,9 +4,6 @@ extern crate glium;
 //-------------- Terminal Stuff ------------------------
 use device_query::{DeviceQuery, DeviceState, Keycode};
 use terminal_size::terminal_size;
-//------------------ Teapot ----------------------------
-mod rawmodels;
-use rawmodels::teapot;
 //------------------ My stuff --------------------------
 mod engine;
 use engine::prefab::{get_prefabs};
@@ -37,15 +34,6 @@ fn main() {
 
     let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
-
-    let positions = glium::VertexBuffer::new(&display, &teapot::VERTICES).unwrap();
-    let normals = glium::VertexBuffer::new(&display, &teapot::NORMALS).unwrap();
-    let indices = glium::IndexBuffer::new(
-        &display,
-        glium::index::PrimitiveType::TrianglesList,
-        &teapot::INDICES,
-    )
-    .unwrap();
 
     //read vertex shader source code from file
     let vertex_shader_src = std::fs::read_to_string("src/shaders/vertex_shader.glsl")
@@ -103,6 +91,15 @@ fn main() {
             [0.0, 0.0, 2.0, 1.0f32],
     ];
 
+    let mut cube = prefab_list.get_prefab("cube.obj".to_string()).unwrap();
+    let mut cube = prefab_list.load_object(&display, cube);
+    cube.model = [
+            [0.5, 0.0, 0.0, 0.0],
+            [0.0, 0.5, 0.0, 0.0],
+            [0.0, 0.0, 0.5, 0.0],
+            [2.0, 0.0, 2.0, 1.0f32],
+    ];
+
     let light = [1.4, 0.4, -0.7f32];
 
     // Main loop
@@ -158,13 +155,6 @@ fn main() {
                 &depthbuffer,
             )
             .unwrap();
-
-        let model = [
-            [0.01, 0.0, 0.0, 0.0],
-            [0.0, 0.01, 0.0, 0.0],
-            [0.0, 0.0, 0.01, 0.0],
-            [2.0, 0.0, 2.0, 1.0f32],
-        ];
 
         match event {
             glutin::event::Event::WindowEvent {
@@ -229,24 +219,18 @@ fn main() {
                 framebuffer
                     .clear_color_and_depth((105. / 255., 109. / 255., 219. / 255., 1.0), 1.0);
 
-                let uniforms = uniform! {
-                    model: model,
+                
+                let cube_uniforms = uniform! {
+                    model: cube.model,
                     view: camera.view_matrix(),
                     perspective: camera.perspective_matrix(),
-                    u_light: [-1.0, 0.4, 0.9f32],
+                    u_light: light,
                 };
 
-                // target
                 framebuffer
-                    .draw(
-                        (&positions, &normals),
-                        &indices,
-                        &program,
-                        &uniforms,
-                        &params,
-                    )
+                    .draw(&cube.vb, &cube.ib, &program, &cube_uniforms, &params)
                     .unwrap();
-
+                
                 let monke_uniforms = uniform! {
                     model: monke.model,
                     view: camera.view_matrix(),
