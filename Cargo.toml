@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 glium = "0.32.1"
 image = "0.24.6"
-termion = "2.0.1"
+terminal_size = "0.2.6"
 device_query = "1.1.3"

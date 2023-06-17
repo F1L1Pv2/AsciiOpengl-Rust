@@ -3,7 +3,7 @@ extern crate glium;
 
 //--------------Terminal Stuff -------------------------
 use device_query::{ DeviceQuery, DeviceState, Keycode };
-use termion;
+use terminal_size::{ terminal_size, Width, Height };
 //------------------ Teapot ----------------------------
 mod rawmodels;
 use rawmodels::teapot;
@@ -18,8 +18,8 @@ fn main() {
     #[allow(unused_imports)]
     use glium::{ glutin, Surface };
 
-    let terminal_size = termion::terminal_size().unwrap();
-    let terminal_size = (terminal_size.0 as u32, terminal_size.1 as u32);
+    let terminal_size = terminal_size().unwrap();
+    let terminal_size: (u32, u32) = (terminal_size.0.0 as u32, terminal_size.1.0 as u32);
 
     let mut terminal_fb = TerminalFrameBuffer::new(
         (terminal_size.0 as usize) / 2,
