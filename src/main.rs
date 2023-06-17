@@ -1,8 +1,6 @@
 #[macro_use]
 extern crate glium;
 
-use std::arch::x86_64::_MM_FROUND_TO_POS_INF;
-
 //--------------Terminal Stuff -------------------------
 use device_query::{ DeviceQuery, DeviceState, Keycode };
 use terminal_size::{ terminal_size };
@@ -13,7 +11,6 @@ use rawmodels::teapot;
 mod engine;
 use engine::camera::Camera;
 use engine::ascii_render::{ TerminalFrameBuffer, Color };
-use engine::matrices::{ perspective_matrix, view_matrix };
 //------------------------------------------------------
 
 fn main() {
@@ -77,7 +74,7 @@ fn main() {
 
     let device_state = DeviceState::new();
 
-    let mut Camera = Camera::new(
+    let mut camera = Camera::new(
         [0.0, 0.0, 0.0f32],
         [0.0, 0.0, 0.0f32],
         0.05,
@@ -119,16 +116,13 @@ fn main() {
         ];
 
         match event {
-            glutin::event::Event::WindowEvent { event, .. } =>
-                match event {
-                    glutin::event::WindowEvent::CloseRequested => {
-                        *control_flow = glutin::event_loop::ControlFlow::Exit;
-                        return;
-                    }
-                    _ => {
-                        return;
-                    }
-                }
+            glutin::event::Event::WindowEvent {
+                event: glutin::event::WindowEvent::CloseRequested,
+                ..
+            } => {
+                *control_flow = glutin::event_loop::ControlFlow::Exit;
+                return;
+            }
 
             glutin::event::Event::MainEventsCleared => {
                 let now = std::time::Instant::now();
@@ -176,7 +170,7 @@ fn main() {
                             _ => (),
                         }
                     }
-                    Camera.update(terminal_size, move_vector, mouse_vector);
+                    camera.update(terminal_size, move_vector, mouse_vector);
                     accumulator -= fixed_timestep;
                 }
 
@@ -189,8 +183,8 @@ fn main() {
                 let uniforms =
                     uniform! {
                     model: model,
-                    view: Camera.view_matrix(),
-                    perspective: Camera.perspective_matrix(),
+                    view: camera.view_matrix(),
+                    perspective: camera.perspective_matrix(),
                     u_light: [-1.0, 0.4, 0.9f32],
                 };
 

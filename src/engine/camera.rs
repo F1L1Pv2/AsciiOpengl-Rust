@@ -14,8 +14,8 @@ impl Camera {
         Camera {
             player_pos: initial_pos,
             player_rot: initral_rot,
-            move_speed: move_speed,
-            mouse_sensitivity: mouse_sensitivity,
+            move_speed,
+            mouse_sensitivity,
             projection: perspective_matrix(terminal_size),
             view: view_matrix(&initial_pos, &initral_rot),
         }
