@@ -47,7 +47,31 @@ fn main() {
         prefab_list.load_obj(
             &display,
             "cube.obj",
-            model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+            model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        )
+    );
+
+    scene.add_object(
+        prefab_list.load_obj(
+            &display,
+            "cube.obj",
+            model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        )
+    );
+
+    scene.add_object(
+        prefab_list.load_obj(
+            &display,
+            "cube.obj",
+            model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        )
+    );
+
+    scene.add_object(
+        prefab_list.load_obj(
+            &display,
+            "cube.obj",
+            model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
         )
     );
 
