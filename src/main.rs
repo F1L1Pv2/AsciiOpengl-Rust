@@ -1,8 +1,9 @@
 #[macro_use]
 extern crate glium;
+use glium::{ glutin, Surface };
 
 //-------------- Terminal Stuff ------------------------
-use device_query::{ DeviceQuery, DeviceState, Keycode };
+use device_query::{  DeviceState};
 use terminal_size::terminal_size;
 //------------------ My stuff --------------------------
 mod engine;
@@ -10,10 +11,10 @@ use engine::scene::Scene;
 use engine::ascii_render::{ Color, TerminalFrameBuffer };
 use engine::core::{ init };
 use engine::matrices::model_matrix;
+use engine::game_loop::game_loop;
 // -----------------------------------------------------
 
 fn main() {
-    use glium::{ glutin, Surface };
 
     let (
         mut terminal_res,
@@ -76,9 +77,6 @@ fn main() {
 
         *control_flow = glutin::event_loop::ControlFlow::Poll;
 
-        let mut move_vector = [0, 0, 0];
-        let mut mouse_vector = [0, 0];
-
         let texture = glium::texture::Texture2d
             ::empty_with_format(
                 &display,
@@ -116,44 +114,9 @@ fn main() {
                 while accumulator >= fixed_timestep {
                     //--------------------------------- Sort of a game loop ---------------------------------
 
-                    let keys: Vec<Keycode> = device_state.get_keys();
 
-                    for key in keys {
-                        match key {
-                            Keycode::W => {
-                                move_vector[2] = 1;
-                            }
-                            Keycode::S => {
-                                move_vector[2] = -1;
-                            }
-                            Keycode::A => {
-                                move_vector[0] = -1;
-                            }
-                            Keycode::D => {
-                                move_vector[0] = 1;
-                            }
-                            Keycode::Space => {
-                                move_vector[1] = 1;
-                            }
-                            Keycode::LShift => {
-                                move_vector[1] = -1;
-                            }
-                            Keycode::I => {
-                                mouse_vector[1] = 1;
-                            }
-                            Keycode::K => {
-                                mouse_vector[1] = -1;
-                            }
-                            Keycode::J => {
-                                mouse_vector[0] = -1;
-                            }
-                            Keycode::L => {
-                                mouse_vector[0] = 1;
-                            }
-                            _ => (),
-                        }
-                    }
-                    camera.update(terminal_res, move_vector, mouse_vector);
+                    game_loop(&device_state, terminal_res, &mut camera, &mut scene);
+                    
                     accumulator -= fixed_timestep;
                 }
 
