@@ -4,6 +4,7 @@ use super::camera::Camera;
 use super::prefab::{get_prefabs, PrefabList};
 use terminal_size::terminal_size;
 use glium::{ glutin};
+use super::scene::Scene;
 
 //create init type
 
@@ -17,6 +18,38 @@ type InitType = (
     Camera,
     PrefabList
 );
+
+
+pub struct Game {
+    scenes: Vec<Scene>,
+    current_scene: usize,
+}
+
+#[allow(dead_code)]
+impl Game {
+    pub fn new() -> Game {
+        Game {
+            scenes: Vec::new(),
+            current_scene: 0,
+        }
+    }
+
+    pub fn add_scene(&mut self, scene: Scene) {
+        self.scenes.push(scene);
+    }
+
+    pub fn set_scene(&mut self, scene: usize) {
+        self.current_scene = scene;
+    }
+
+    pub fn get_scene(&self) -> &Scene {
+        &self.scenes[self.current_scene]
+    }
+
+    pub fn get_scene_mut(&mut self) -> &mut Scene {
+        &mut self.scenes[self.current_scene]
+    }
+}
 
 
 pub fn init() -> InitType

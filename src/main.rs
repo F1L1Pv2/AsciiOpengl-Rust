@@ -9,7 +9,7 @@ use terminal_size::terminal_size;
 mod engine;
 use engine::scene::Scene;
 use engine::ascii_render::{ Color, TerminalFrameBuffer };
-use engine::core::{ init };
+use engine::core::{ init, Game };
 use engine::matrices::model_matrix;
 use engine::game_loop::game_loop;
 // -----------------------------------------------------
@@ -27,6 +27,8 @@ fn main() {
         mut prefab_list,
     ) = init();
 
+    let mut game = Game::new();
+
     let mut scene: Scene = Scene::new();
 
     scene.add_object(
@@ -37,13 +39,21 @@ fn main() {
         )
     );
 
+    game.add_scene(scene);
+
+    let mut scene = Scene::new();
+
     scene.add_object(
         prefab_list.load_obj(
             &display,
             "cube.obj",
-            model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+            model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
         )
     );
+
+    game.add_scene(scene);
+
+
 
     drop(prefab_list);
 
@@ -107,6 +117,7 @@ fn main() {
             }
 
             glutin::event::Event::MainEventsCleared => {
+
                 let now = std::time::Instant::now();
                 accumulator += now - next_frame_time;
                 next_frame_time = now;
@@ -115,19 +126,20 @@ fn main() {
                     //--------------------------------- Sort of a game loop ---------------------------------
 
 
-                    game_loop(&device_state, terminal_res, &mut camera, &mut scene);
+                    game_loop(&device_state, terminal_res, &mut camera, &mut game);
                     
                     accumulator -= fixed_timestep;
                 }
 
                 //--------------------------------- Render (post update) ---------------------------------
 
+
                 framebuffer.clear_color_and_depth(
                     (105.0 / 255.0, 109.0 / 255.0, 219.0 / 255.0, 1.0),
                     1.0
                 );
 
-                for object in scene.objects.iter() {
+                for object in game.get_scene().objects.iter() {
                     let uniforms =
                         uniform! {
                         model: object.model,

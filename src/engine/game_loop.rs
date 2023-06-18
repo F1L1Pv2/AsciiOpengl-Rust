@@ -1,14 +1,16 @@
 // WIP
 use device_query::{ DeviceState, DeviceQuery, Keycode };
 use super::camera::Camera;
-use super::scene::Scene;
+use super::core::Game;
 
 pub fn game_loop(
     device_state: &DeviceState,
     terminal_res: (u32, u32),
     camera: &mut Camera,
-    _scene: &mut Scene,
+    game: &mut Game,
 ) {
+
+    // let _game = game;
 
     let mut move_vector = [0, 0, 0];
     let mut mouse_vector = [0, 0];
@@ -46,6 +48,17 @@ pub fn game_loop(
             }
             Keycode::L => {
                 mouse_vector[0] = 1;
+            }
+            Keycode::Escape => {
+                //clear the terminal
+                print!("\x1B[2J\x1B[1;1H");
+                std::process::exit(0);
+            }
+            Keycode::Q => {
+                game.set_scene(0);
+            }
+            Keycode::E => {
+                game.set_scene(1);
             }
             _ => (),
         }
