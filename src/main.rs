@@ -3,7 +3,7 @@ extern crate glium;
 use glium::{ glutin, Surface };
 
 //-------------- Terminal Stuff ------------------------
-use device_query::{  DeviceState};
+use device_query::{ DeviceState };
 use terminal_size::terminal_size;
 //------------------ My stuff --------------------------
 mod engine;
@@ -15,7 +15,6 @@ use engine::game_loop::game_loop;
 // -----------------------------------------------------
 
 fn main() {
-
     let (
         mut terminal_res,
         mut terminal_fb,
@@ -77,8 +76,6 @@ fn main() {
 
     game.add_scene(scene);
 
-
-
     drop(prefab_list);
 
     let light = [1.4, 0.4, -0.7f32];
@@ -89,6 +86,26 @@ fn main() {
 
     // Main loop
     event_loop.run(move |event, _, control_flow| {
+        let texture = glium::texture::Texture2d
+            ::empty_with_format(
+                &display,
+                glium::texture::UncompressedFloatFormat::U8U8U8U8,
+                glium::texture::MipmapsOption::NoMipmap,
+                terminal_res.0,
+                terminal_res.1
+            )
+            .unwrap();
+
+        // Create a depth buffer for off-screen rendering
+        let depthbuffer = glium::framebuffer::DepthRenderBuffer
+            ::new(&display, glium::texture::DepthFormat::F32, terminal_res.0, terminal_res.1)
+            .unwrap();
+
+        // Create a framebuffer for off-screen rendering
+        let mut framebuffer: glium::framebuffer::SimpleFrameBuffer = glium::framebuffer::SimpleFrameBuffer
+            ::with_depth_buffer(&display, &texture, &depthbuffer)
+            .unwrap();
+
         // Check res and update if changed
         let new_terminal_res = terminal_size().unwrap();
         let new_terminal_res: (u32, u32) = (
@@ -111,26 +128,6 @@ fn main() {
 
         *control_flow = glutin::event_loop::ControlFlow::Poll;
 
-        let texture = glium::texture::Texture2d
-            ::empty_with_format(
-                &display,
-                glium::texture::UncompressedFloatFormat::U8U8U8U8,
-                glium::texture::MipmapsOption::NoMipmap,
-                terminal_res.0,
-                terminal_res.1
-            )
-            .unwrap();
-
-        // Create a depth buffer for off-screen rendering
-        let depthbuffer = glium::framebuffer::DepthRenderBuffer
-            ::new(&display, glium::texture::DepthFormat::F32, terminal_res.0, terminal_res.1)
-            .unwrap();
-
-        // Create a framebuffer for off-screen rendering
-        let mut framebuffer: glium::framebuffer::SimpleFrameBuffer = glium::framebuffer::SimpleFrameBuffer
-            ::with_depth_buffer(&display, &texture, &depthbuffer)
-            .unwrap();
-
         match event {
             glutin::event::Event::WindowEvent {
                 event: glutin::event::WindowEvent::CloseRequested,
@@ -141,7 +138,6 @@ fn main() {
             }
 
             glutin::event::Event::MainEventsCleared => {
-
                 let now = std::time::Instant::now();
                 accumulator += now - next_frame_time;
                 next_frame_time = now;
@@ -149,14 +145,12 @@ fn main() {
                 while accumulator >= fixed_timestep {
                     //--------------------------------- Sort of a game loop ---------------------------------
 
-
                     game_loop(&device_state, terminal_res, &mut camera, &mut game);
-                    
+
                     accumulator -= fixed_timestep;
                 }
 
                 //--------------------------------- Render (post update) ---------------------------------
-
 
                 framebuffer.clear_color_and_depth(
                     (105.0 / 255.0, 109.0 / 255.0, 219.0 / 255.0, 1.0),
@@ -182,6 +176,7 @@ fn main() {
         }
 
         //get pixels from display
+        //TODO: use framebuffer.read_to_pixel_buffer
         let pixels: glium::texture::RawImage2d<u8> = texture.read();
         terminal_fb.clear();
         for i in 0..pixels.data.len() / 4 {
