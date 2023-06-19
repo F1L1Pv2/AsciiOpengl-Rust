@@ -14,7 +14,7 @@ implement_vertex!(Vertex, position, normal, tex_coords);
 
 #[derive(Debug)]
 pub struct Object {
-    pub name: String,
+    // pub name: String,
     pub model: [[f32; 4]; 4],
     pub vb: glium::VertexBuffer<Vertex>,
     pub ib: glium::IndexBuffer<u32>,
@@ -22,7 +22,12 @@ pub struct Object {
 
 impl Object {
     //load .obj file
-    pub fn new(name: String, model: [[f32; 4]; 4], file_path: &str, display: &glium::Display) -> Object {
+    pub fn new(
+        // name: String, 
+        file_path: &str, 
+        model: [[f32; 4]; 4],
+        display: &glium::Display
+        ) -> Object {
         let facade = display.get_context();
 
         let load_options = tobj::LoadOptions {
@@ -66,6 +71,8 @@ impl Object {
         )
         .unwrap();
 
-        Object {name, model, vb, ib }
+        Object {
+            // name, 
+            model, vb, ib }
     }
 }

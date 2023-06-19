@@ -1,7 +1,7 @@
 use super::ascii_render::{ Color, TerminalFrameBuffer };
 use super::camera::Camera;
 // use super::matrices::{ model_matrix };
-use super::prefab::{get_prefabs, PrefabList};
+// use super::prefab::{get_prefabs, PrefabList};
 use terminal_size::terminal_size;
 use glium::{ glutin};
 use super::scene::Scene;
@@ -15,8 +15,7 @@ type InitType = (
     glium::Display,
     glium::Program,
     glium::DrawParameters<'static>,
-    Camera,
-    PrefabList
+    Camera
 );
 
 
@@ -75,11 +74,11 @@ pub fn init() -> InitType
 
     //read vertex shader source code from file
     let vertex_shader_src = std::fs
-        ::read_to_string("src/shaders/vertex_shader.glsl")
+        ::read_to_string("assets/shaders/vertex_shader.glsl")
         .expect("Failed to read vertex shader source code from file");
 
     let fragment_shader_src = std::fs
-        ::read_to_string("src/shaders/fragment_shader.glsl")
+        ::read_to_string("assets/shaders/fragment_shader.glsl")
         .expect("Failed to read fragment shader source code from file");
 
     let program = glium::Program
@@ -101,8 +100,6 @@ pub fn init() -> InitType
 
     let camera = Camera::new([0.0, 0.0, 0.0f32], [0.0, 0.0, 0.0f32], 0.05, 0.05, terminal_res);
 
-    let prefab_list = get_prefabs();
-
-    (terminal_res, terminal_fb, event_loop, display, program, params, camera,prefab_list)
+    (terminal_res, terminal_fb, event_loop, display, program, params, camera)
 
 }

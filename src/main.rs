@@ -12,6 +12,7 @@ use engine::ascii_render::{ Color, TerminalFrameBuffer };
 use engine::core::{ init, Game };
 use engine::matrices::model_matrix;
 use engine::game_loop::game_loop;
+use engine::object::Object;
 // -----------------------------------------------------
 
 fn main() {
@@ -23,7 +24,6 @@ fn main() {
         program,
         params,
         mut camera,
-        mut prefab_list,
     ) = init();
 
     let mut game = Game::new();
@@ -31,10 +31,10 @@ fn main() {
     let mut scene: Scene = Scene::new();
 
     scene.add_object(
-        prefab_list.load_obj(
-            &display,
-            "monke.obj",
-            model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        Object::new(
+            "assets/models/monke.obj",
+            model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+            &display
         )
     );
 
@@ -43,40 +43,38 @@ fn main() {
     let mut scene = Scene::new();
 
     scene.add_object(
-        prefab_list.load_obj(
-            &display,
-            "cube.obj",
-            model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        Object::new(
+            "assets/models/cube.obj",
+            model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+            &display
         )
     );
 
     scene.add_object(
-        prefab_list.load_obj(
-            &display,
-            "cube.obj",
-            model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        Object::new(
+            "assets/models/cube.obj",
+            model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+            &display
         )
     );
 
     scene.add_object(
-        prefab_list.load_obj(
-            &display,
-            "cube.obj",
-            model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        Object::new(
+            "assets/models/cube.obj",
+            model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+            &display
         )
     );
 
     scene.add_object(
-        prefab_list.load_obj(
-            &display,
-            "cube.obj",
-            model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]).into()
+        Object::new(
+            "assets/models/cube.obj",
+            model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+            &display
         )
     );
 
     game.add_scene(scene);
-
-    drop(prefab_list);
 
     let light = [1.4, 0.4, -0.7f32];
     let device_state = DeviceState::new();
@@ -157,7 +155,7 @@ fn main() {
                     1.0
                 );
 
-                for object in game.get_scene().objects.iter() {
+                for object in &game.get_scene().objects {
                     let uniforms =
                         uniform! {
                         model: object.model,
