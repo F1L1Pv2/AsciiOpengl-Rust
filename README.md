@@ -4,7 +4,7 @@ OpenGL in Ascii. That's it :)
 
 To run `cargo run --release`
 
-#TODO
+# TODO
 - [*] Textures
 - [] Scene editor
 - [*] Scene loader
