@@ -1,5 +1,6 @@
 use super::ascii_render::{ Color, TerminalFrameBuffer };
 use super::camera::Camera;
+use super::object::Object;
 // use super::matrices::{ model_matrix };
 // use super::prefab::{get_prefabs, PrefabList};
 use terminal_size::terminal_size;
@@ -16,12 +17,18 @@ type InitType = (
     glium::Program,
     glium::Program,
     glium::DrawParameters<'static>,
+    glium::DrawParameters<'static>,
     Camera
 );
 
+#[derive(Debug)]
+pub struct UiElems {
+    pub elems: Vec<Object>,
+}
 
 pub struct Game {
     scenes: Vec<Scene>,
+    ui_elems: UiElems,
     current_scene: usize,
 }
 
@@ -30,6 +37,7 @@ impl Game {
     pub fn new() -> Game {
         Game {
             scenes: Vec::new(),
+            ui_elems: UiElems { elems: Vec::new() },
             current_scene: 0,
         }
     }
@@ -48,6 +56,20 @@ impl Game {
 
     pub fn get_scene_mut(&mut self) -> &mut Scene {
         &mut self.scenes[self.current_scene]
+    }
+
+    pub fn add_ui_elem(&mut self, elem: Object) {
+        self.ui_elems.elems.push(elem);
+    }
+
+    pub fn add_ui_elems(&mut self, elems: Vec<Object>) {
+        for elem in elems {
+            self.ui_elems.elems.push(elem);
+        }
+    }
+
+    pub fn get_ui_elems(&self) -> &UiElems {
+        &self.ui_elems
     }
 }
 
@@ -92,6 +114,17 @@ pub fn init() -> InitType
             write: true,
             ..Default::default()
         },
+        blend: glium::Blend::alpha_blending(),
+        //set texture filtering to nearest
+
+        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+        ..Default::default()
+    };
+
+    let ui_params = glium::DrawParameters {
+        blend: glium::Blend::alpha_blending(),
+        //set texture filtering to nearest
+
         //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
         ..Default::default()
     };
@@ -114,6 +147,6 @@ pub fn init() -> InitType
 
     let camera = Camera::new([0.0, 0.0, 0.0f32], [0.0, 0.0, 0.0f32], 0.05, 0.05, terminal_res);
 
-    (terminal_res, terminal_fb, event_loop, display, program,ui_program, params, camera)
+    (terminal_res, terminal_fb, event_loop, display, program,ui_program, params,ui_params, camera)
 
 }

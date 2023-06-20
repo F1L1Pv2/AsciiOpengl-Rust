@@ -5,6 +5,8 @@ use glium::{ glutin, Surface };
 //-------------- Terminal Stuff ------------------------
 use device_query::{ DeviceState };
 use terminal_size::terminal_size;
+// -----------------------------------------------------
+use fontdue::Font;
 //------------------ My stuff --------------------------
 mod engine;
 use engine::scene::Scene;
@@ -13,7 +15,8 @@ use engine::core::{ init, Game };
 use engine::matrices::model_matrix;
 use engine::game_loop::game_loop;
 use engine::object::Object;
-use engine::ui::draw_rect;
+// use engine::ui::draw_rect;
+use engine::ui::{draw_text, draw_rect};
 // -----------------------------------------------------
 
 fn main() {
@@ -25,6 +28,7 @@ fn main() {
         program,
         ui_program,
         params,
+        ui_params,
         mut camera,
     ) = init();
 
@@ -82,6 +86,23 @@ fn main() {
     );
 
     game.add_scene(scene);
+
+    let font = Font::from_bytes(
+        include_bytes!("../assets/fonts/Roboto-Regular.ttf") as &[u8],
+        fontdue::FontSettings::default()
+    ).unwrap();
+
+    game.add_ui_elems(draw_text(0.0, 0.0, "ballin", 3.0, &font, &display));
+    // game.add_ui_elems(draw_text(0.0, 0.5, "b", 20.0, &font, &display));
+
+    // return;
+
+
+    game.add_ui_elem(draw_rect(0.0, 0.75, 0.25, 0.25, "assets/sprites/align.png", &display));
+
+    // println!("{:?}", game.get_ui_elems());
+
+    // return;
 
     let light = [1.4, 0.4, -0.7f32];
     let device_state = DeviceState::new();
@@ -175,14 +196,26 @@ fn main() {
                     framebuffer.draw(&object.vb, &object.ib, &program, &uniforms, &params).unwrap();
                 }
 
-                let ui_elem = draw_rect(0.0, 0.0, 0.25, 0.4, "assets/sprites/align.png", &display);
+                //--------------------------------- UI ---------------------------------
 
-                let uniforms =
-                    uniform! {
-                    tex: &ui_elem.texture,
-                };
+                for ui_elem in &game.get_ui_elems().elems {
 
-                framebuffer.draw(&ui_elem.vb, &ui_elem.ib, &ui_program, &uniforms, &params).unwrap();
+                    // let behavior = glium::uniforms::SamplerBehavior {
+                    //     minify_filter:  glium::uniforms::MinifySamplerFilter::Nearest,
+                    //     magnify_filter: glium::uniforms::MagnifySamplerFilter::Nearest,
+                    //     ..Default::default()
+                    // };
+
+                    let uniforms =
+                        uniform! {
+                        // tex: glium::uniforms::Sampler(&ui_elem.texture, behavior),
+                        tex: &ui_elem.texture,
+                    };
+
+                    framebuffer
+                        .draw(&ui_elem.vb, &ui_elem.ib, &ui_program, &uniforms, &ui_params)
+                        .unwrap();
+                }
             }
 
             _ => {
