@@ -7,22 +7,22 @@ To run `cargo run --release`
 currently `cargo run` will give overflow errors (WIP)
 
 # TODO
-- [*] Textures
-- [] Scene editor
-- [*] Scene loader
-- [] Audio
-- [] Physics
-- [*] UI
-- [] UI Editor
-- [*] Loading OBJ files
-- [] Vertex Colors
-- [] Lighting
-- [*] AsciiRenderer
-- [*] Game loop
-- [*] Camera
-- [*] Mesh
-- [*] Shaders
-- [*] KeyboardInput
-- [] MouseInput
+- [x] Textures
+- [ ] Scene editor
+- [x] Scene loader
+- [ ] Audio
+- [ ] Physics
+- [x] UI
+- [ ] UI Editor
+- [x] Loading OBJ files
+- [ ] Vertex Colors
+- [ ] Lighting
+- [x] AsciiRenderer
+- [x] Game loop
+- [x] Camera
+- [x] Mesh
+- [x] Shaders
+- [x] KeyboardInput
+- [ ] MouseInput
 
 more may be added later
