@@ -1,13 +1,15 @@
 //WIP
 
-use glium::{self, backend::Facade};
+use glium::{ self, backend::Facade, Texture2d };
+use glium::texture::RawImage2d;
 use tobj;
+use std::path::Path;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex {
-    position: (f32, f32, f32),
-    normal: [f32; 3],
-    tex_coords: [f32; 2],
+    pub position: (f32, f32, f32),
+    pub normal: [f32; 3],
+    pub tex_coords: [f32; 2],
 }
 
 implement_vertex!(Vertex, position, normal, tex_coords);
@@ -16,6 +18,7 @@ implement_vertex!(Vertex, position, normal, tex_coords);
 pub struct Object {
     // pub name: String,
     pub model: [[f32; 4]; 4],
+    pub texture: Texture2d,
     pub vb: glium::VertexBuffer<Vertex>,
     pub ib: glium::IndexBuffer<u32>,
 }
@@ -23,11 +26,12 @@ pub struct Object {
 impl Object {
     //load .obj file
     pub fn new(
-        // name: String, 
-        file_path: &str, 
+        // name: String,
+        file_path: &str,
+        texture_path: Option<&str>,
         model: [[f32; 4]; 4],
         display: &glium::Display
-        ) -> Object {
+    ) -> Object {
         let facade = display.get_context();
 
         let load_options = tobj::LoadOptions {
@@ -48,11 +52,7 @@ impl Object {
                         mesh.positions[i * 3 + 1],
                         mesh.positions[i * 3 + 2],
                     ),
-                    normal: [
-                        mesh.normals[i * 3],
-                        mesh.normals[i * 3 + 1],
-                        mesh.normals[i * 3 + 2],
-                    ],
+                    normal: [mesh.normals[i * 3], mesh.normals[i * 3 + 1], mesh.normals[i * 3 + 2]],
                     tex_coords: [mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]],
                 };
                 verticies.push(vertex);
@@ -60,19 +60,51 @@ impl Object {
             indicies = mesh.indices;
         }
 
+        let texture_val: Texture2d;
+
+        if texture_path.is_some(){
+            let texture_path: String = texture_path.unwrap().to_string();
+            let image = image::open(Path::new(&texture_path)).unwrap().to_rgba8();
+            let image_dimensions = image.dimensions();
+            let image = RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
+            texture_val = Texture2d::new(display, image).unwrap();
+        } else {
+            //create blank texture
+
+            texture_val = Texture2d::empty(display, 512, 512).unwrap();
+            //fill texture with white
+            let texture_data = vec![255u8; 512 * 512 * 4];
+            
+            texture_val.write(
+                glium::Rect {
+                    left: 0,
+                    bottom: 0,
+                    width: 512,
+                    height: 512,
+                },
+                glium::texture::RawImage2d {
+                    data: std::borrow::Cow::Borrowed(&texture_data),
+                    width: 512,
+                    height: 512,
+                    format: glium::texture::ClientFormat::U8U8U8U8,
+                },
+            );
+        }
+
         // println!("verticies: {:?}", verticies);
         // println!("indicies: {:?}", indicies);
 
         let vb = glium::VertexBuffer::new(facade, &verticies).unwrap();
-        let ib = glium::IndexBuffer::new(
-            facade,
-            glium::index::PrimitiveType::TrianglesList,
-            &indicies,
-        )
-        .unwrap();
+        let ib = glium::IndexBuffer
+            ::new(facade, glium::index::PrimitiveType::TrianglesList, &indicies)
+            .unwrap();
 
         Object {
-            // name, 
-            model, vb, ib }
+            // name,
+            model,
+            texture: texture_val,
+            vb,
+            ib,
+        }
     }
 }

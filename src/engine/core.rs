@@ -14,6 +14,7 @@ type InitType = (
     glutin::event_loop::EventLoop<()>,
     glium::Display,
     glium::Program,
+    glium::Program,
     glium::DrawParameters<'static>,
     Camera
 );
@@ -95,11 +96,24 @@ pub fn init() -> InitType
         ..Default::default()
     };
 
+    let ui_vertex_shader_src = std::fs
+        ::read_to_string("assets/shaders/ui_vertex.glsl")
+        .expect("Failed to read vertex shader source code from file");
+
+    let ui_fragment_shader_src = std::fs
+        ::read_to_string("assets/shaders/ui_fragment.glsl")
+        .expect("Failed to read fragment shader source code from file");
+
+
+    let ui_program = glium::Program
+        ::from_source(&display, ui_vertex_shader_src.as_str(), ui_fragment_shader_src.as_str(), None)
+        .unwrap();
+
     
 
 
     let camera = Camera::new([0.0, 0.0, 0.0f32], [0.0, 0.0, 0.0f32], 0.05, 0.05, terminal_res);
 
-    (terminal_res, terminal_fb, event_loop, display, program, params, camera)
+    (terminal_res, terminal_fb, event_loop, display, program,ui_program, params, camera)
 
 }

@@ -13,6 +13,7 @@ use engine::core::{ init, Game };
 use engine::matrices::model_matrix;
 use engine::game_loop::game_loop;
 use engine::object::Object;
+use engine::ui::draw_rect;
 // -----------------------------------------------------
 
 fn main() {
@@ -22,6 +23,7 @@ fn main() {
         event_loop,
         display,
         program,
+        ui_program,
         params,
         mut camera,
     ) = init();
@@ -33,6 +35,7 @@ fn main() {
     scene.add_object(
         Object::new(
             "assets/models/monke.obj",
+            None,
             model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             &display
         )
@@ -45,6 +48,7 @@ fn main() {
     scene.add_object(
         Object::new(
             "assets/models/cube.obj",
+            "assets/sprites/align.png".into(),
             model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             &display
         )
@@ -53,6 +57,7 @@ fn main() {
     scene.add_object(
         Object::new(
             "assets/models/cube.obj",
+            None,
             model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             &display
         )
@@ -61,6 +66,7 @@ fn main() {
     scene.add_object(
         Object::new(
             "assets/models/cube.obj",
+            None,
             model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             &display
         )
@@ -69,6 +75,7 @@ fn main() {
     scene.add_object(
         Object::new(
             "assets/models/cube.obj",
+            None,
             model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             &display
         )
@@ -162,10 +169,20 @@ fn main() {
                         view: camera.view_matrix(),
                         perspective: camera.perspective_matrix(),
                         u_light: light,
+                        tex: &object.texture,
                     };
 
                     framebuffer.draw(&object.vb, &object.ib, &program, &uniforms, &params).unwrap();
                 }
+
+                let ui_elem = draw_rect(0.0, 0.0, 0.25, 0.4, "assets/sprites/align.png", &display);
+
+                let uniforms =
+                    uniform! {
+                    tex: &ui_elem.texture,
+                };
+
+                framebuffer.draw(&ui_elem.vb, &ui_elem.ib, &ui_program, &uniforms, &params).unwrap();
             }
 
             _ => {
