@@ -18,7 +18,7 @@ type InitType = (
     glium::Program,
     glium::DrawParameters<'static>,
     glium::DrawParameters<'static>,
-    Camera
+    Game,
 );
 
 #[derive(Debug)]
@@ -28,16 +28,18 @@ pub struct UiElems {
 
 pub struct Game {
     scenes: Vec<Scene>,
+    pub camera: Camera,
     ui_elems: UiElems,
     current_scene: usize,
 }
 
 #[allow(dead_code)]
 impl Game {
-    pub fn new() -> Game {
+    pub fn new(camera: Camera) -> Game {
         Game {
             scenes: Vec::new(),
             ui_elems: UiElems { elems: Vec::new() },
+            camera,
             current_scene: 0,
         }
     }
@@ -147,6 +149,8 @@ pub fn init() -> InitType
 
     let camera = Camera::new([0.0, 0.0, 0.0f32], [0.0, 0.0, 0.0f32], 0.05, 0.05, terminal_res);
 
-    (terminal_res, terminal_fb, event_loop, display, program,ui_program, params,ui_params, camera)
+    let game = Game::new(camera);
+
+    (terminal_res, terminal_fb, event_loop, display, program,ui_program, params,ui_params, game)
 
 }

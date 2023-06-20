@@ -11,7 +11,7 @@ use fontdue::Font;
 mod engine;
 use engine::scene::Scene;
 use engine::ascii_render::{ Color, TerminalFrameBuffer };
-use engine::core::{ init, Game };
+use engine::core::{ init};
 use engine::matrices::model_matrix;
 use engine::game_loop::game_loop;
 use engine::object::Object;
@@ -29,10 +29,8 @@ fn main() {
         ui_program,
         params,
         ui_params,
-        mut camera,
+        mut game,
     ) = init();
-
-    let mut game = Game::new();
 
     let mut scene: Scene = Scene::new();
 
@@ -171,7 +169,7 @@ fn main() {
                 while accumulator >= fixed_timestep {
                     //--------------------------------- Sort of a game loop ---------------------------------
 
-                    game_loop(&device_state, terminal_res, &mut camera, &mut game);
+                    game_loop(&device_state, terminal_res, &mut game);
 
                     accumulator -= fixed_timestep;
                 }
@@ -187,8 +185,8 @@ fn main() {
                     let uniforms =
                         uniform! {
                         model: object.model,
-                        view: camera.view_matrix(),
-                        perspective: camera.perspective_matrix(),
+                        view: game.camera.view_matrix(),
+                        perspective: game.camera.perspective_matrix(),
                         u_light: light,
                         tex: &object.texture,
                     };

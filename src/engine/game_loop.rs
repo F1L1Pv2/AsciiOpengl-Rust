@@ -1,12 +1,10 @@
 // WIP
 use device_query::{ DeviceState, DeviceQuery, Keycode };
-use super::camera::Camera;
 use super::core::Game;
 
 pub fn game_loop(
     device_state: &DeviceState,
     terminal_res: (u32, u32),
-    camera: &mut Camera,
     game: &mut Game,
 ) {
 
@@ -63,5 +61,5 @@ pub fn game_loop(
             _ => (),
         }
     }
-    camera.update(terminal_res, move_vector, mouse_vector);
+    game.camera.update(terminal_res, move_vector, mouse_vector);
 }
