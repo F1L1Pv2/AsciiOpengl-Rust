@@ -1,8 +1,10 @@
 # AsciiOpengl-Rust
 
-OpenGL in Ascii. That's it :)
+Ascii Game Engine written in Rust using OpenGL (Glium)
 
 To run `cargo run --release`
+
+currently `cargo run` will give overflow errors (WIP)
 
 # TODO
 - [*] Textures
