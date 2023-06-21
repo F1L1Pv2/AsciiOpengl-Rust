@@ -3,9 +3,9 @@ extern crate glium;
 
 //------------------ My stuff --------------------------
 mod engine;
-use engine::core::{ init, run_event_loop };
-use engine::example::game_loop::game_loop;
+use engine::core::{init, run_event_loop};
 use engine::example::game_init::game_init;
+use engine::example::game_loop::game_loop;
 // -----------------------------------------------------
 
 fn main() {
@@ -40,6 +40,6 @@ fn main() {
         },
         move |game, display| {
             game_init(game, display);
-        }
+        },
     );
 }

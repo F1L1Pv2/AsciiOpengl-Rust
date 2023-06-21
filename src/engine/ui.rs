@@ -1,11 +1,11 @@
-use std::path::Path;
+use super::object::Vertex;
+use super::object::{Object, TextureFilter};
 use glium::texture::RawImage2d;
 use glium::texture::Texture2d;
-use super::object::{Object, TextureFilter};
-use super::object::Vertex;
+use std::path::Path;
 
-use image::ImageBuffer;
 use fontdue::Font;
+use image::ImageBuffer;
 
 #[allow(dead_code)]
 pub fn draw_text(
@@ -14,7 +14,7 @@ pub fn draw_text(
     text: &str,
     size: f32,
     font: &Font,
-    display: &glium::Display
+    display: &glium::Display,
 ) -> Vec<Object> {
     let mut objects: Vec<Object> = Vec::new();
 
@@ -36,12 +36,11 @@ pub fn draw_text(
 
         let image_dimensions = image.dimensions();
         let image = RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
-        
 
         let texture = Texture2d::new(display, image).unwrap();
 
-        let actual_width = metrics.bounds.width/100.;
-        let actual_height = metrics.bounds.height/100.;
+        let actual_width = metrics.bounds.width / 100.;
+        let actual_height = metrics.bounds.height / 100.;
 
         let x = origin_x + x_offset;
         let y = origin_y;
@@ -77,9 +76,9 @@ pub fn draw_text(
 
         let indices = vec![0, 1, 2, 2, 3, 0];
 
-        let ib = glium::IndexBuffer
-        ::new(display, glium::index::PrimitiveType::TriangleFan, &indices)
-        .unwrap();
+        let ib =
+            glium::IndexBuffer::new(display, glium::index::PrimitiveType::TriangleFan, &indices)
+                .unwrap();
 
         let model = [
             [1.0, 0.0, 0.0, 0.0],
@@ -88,7 +87,7 @@ pub fn draw_text(
             [0.0, 0.0, 1.0, 1.0f32],
         ];
 
-        let object = Object{
+        let object = Object {
             vb: glium::VertexBuffer::new(display, &vertices).unwrap(),
             ib,
             texture,
@@ -97,7 +96,6 @@ pub fn draw_text(
         };
 
         objects.push(object);
-
     }
 
     objects
@@ -111,7 +109,7 @@ pub fn draw_rect_tex(
     height: f32,
     texture: Texture2d,
     texture_filter: TextureFilter,
-    display: &glium::Display
+    display: &glium::Display,
 ) -> Object {
     let height = height * 2.0;
 
@@ -137,15 +135,14 @@ pub fn draw_rect_tex(
             position: (x, y + height, 0.0),
             normal: [0.0, 0.0, 0.0],
             tex_coords: [0.0, 1.0],
-        }
+        },
     ];
 
     let indices = vec![0, 1, 2, 2, 3, 0];
 
     let vb = glium::VertexBuffer::new(display, &vertices).unwrap();
 
-    let ib = glium::IndexBuffer
-        ::new(display, glium::index::PrimitiveType::TriangleFan, &indices)
+    let ib = glium::IndexBuffer::new(display, glium::index::PrimitiveType::TriangleFan, &indices)
         .unwrap();
 
     let model = [
@@ -172,7 +169,7 @@ pub fn draw_rect(
     height: f32,
     texture_path: &str,
     texture_filter: TextureFilter,
-    display: &glium::Display
+    display: &glium::Display,
 ) -> Object {
     let image = image::open(Path::new(texture_path)).unwrap().to_rgba8();
     let image_dimensions = image.dimensions();
@@ -204,15 +201,14 @@ pub fn draw_rect(
             position: (x, y + height, 0.0),
             normal: [0.0, 0.0, 0.0],
             tex_coords: [0.0, 1.0],
-        }
+        },
     ];
 
     let indices = vec![0, 1, 2, 2, 3, 0];
 
     let vb = glium::VertexBuffer::new(display, &vertices).unwrap();
 
-    let ib = glium::IndexBuffer
-        ::new(display, glium::index::PrimitiveType::TriangleFan, &indices)
+    let ib = glium::IndexBuffer::new(display, glium::index::PrimitiveType::TriangleFan, &indices)
         .unwrap();
 
     let model = [

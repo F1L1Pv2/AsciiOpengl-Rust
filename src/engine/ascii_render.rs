@@ -139,6 +139,7 @@ fn rgb_to_hsl(r: f32, g: f32, b: f32) -> (f32, f32, f32) {
 
     let h = if delta == 0.0 {
         0.0
+        // potential innacuracy here
     } else if cmax == r {
         60.0 * (((g - b) / delta) % 6.0)
     } else if cmax == g {

@@ -1,9 +1,9 @@
 //WIP
 
-use glium::{ self, backend::Facade, Texture2d };
 use glium::texture::RawImage2d;
-use tobj;
+use glium::{self, backend::Facade, Texture2d};
 use std::path::Path;
+use tobj;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex {
@@ -38,7 +38,7 @@ impl Object {
         texture_path: Option<&str>,
         texture_filter: TextureFilter,
         model: [[f32; 4]; 4],
-        display: &glium::Display
+        display: &glium::Display,
     ) -> Object {
         let facade = display.get_context();
 
@@ -60,7 +60,11 @@ impl Object {
                         mesh.positions[i * 3 + 1],
                         mesh.positions[i * 3 + 2],
                     ),
-                    normal: [mesh.normals[i * 3], mesh.normals[i * 3 + 1], mesh.normals[i * 3 + 2]],
+                    normal: [
+                        mesh.normals[i * 3],
+                        mesh.normals[i * 3 + 1],
+                        mesh.normals[i * 3 + 2],
+                    ],
                     tex_coords: [mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]],
                 };
                 verticies.push(vertex);
@@ -70,8 +74,8 @@ impl Object {
 
         let texture_val: Texture2d;
 
-        if texture_path.is_some(){
-            let texture_path: String = texture_path.unwrap().to_string();
+        if let Some(texture_path) = texture_path {
+            let texture_path = texture_path.to_string();
             let image = image::open(Path::new(&texture_path)).unwrap().to_rgba8();
             let image_dimensions = image.dimensions();
             let image = RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
@@ -82,7 +86,7 @@ impl Object {
             texture_val = Texture2d::empty(display, 512, 512).unwrap();
             //fill texture with white
             let texture_data = vec![255u8; 512 * 512 * 4];
-            
+
             texture_val.write(
                 glium::Rect {
                     left: 0,
@@ -103,9 +107,12 @@ impl Object {
         // println!("indicies: {:?}", indicies);
 
         let vb = glium::VertexBuffer::new(facade, &verticies).unwrap();
-        let ib = glium::IndexBuffer
-            ::new(facade, glium::index::PrimitiveType::TrianglesList, &indicies)
-            .unwrap();
+        let ib = glium::IndexBuffer::new(
+            facade,
+            glium::index::PrimitiveType::TrianglesList,
+            &indicies,
+        )
+        .unwrap();
 
         Object {
             // name,
