@@ -162,15 +162,16 @@ pub fn init() -> InitType
 }
 
 pub fn run_event_loop<F,G>(
-    terminal_res: (u32, u32),
-    terminal_fb: TerminalFrameBuffer,
-    event_loop: glutin::event_loop::EventLoop<()>,
-    display: glium::Display,
-    program: glium::Program,
-    ui_program: glium::Program,
-    params: glium::DrawParameters<'static>,
-    ui_params: glium::DrawParameters<'static>,
-    mut game: Game,
+    // terminal_res: (u32, u32),
+    // terminal_fb: TerminalFrameBuffer,
+    // event_loop: glutin::event_loop::EventLoop<()>,
+    // display: glium::Display,
+    // program: glium::Program,
+    // ui_program: glium::Program,
+    // params: glium::DrawParameters<'static>,
+    // ui_params: glium::DrawParameters<'static>,
+    // mut game: Game,
+    init_type: InitType,
     mut game_loop: F,
     mut game_init: G,
 )
@@ -178,6 +179,18 @@ where
     F: FnMut(&DeviceState, (u32, u32), &mut Game) + 'static,
     G: FnMut(&mut Game, &glium::Display) + 'static,
 {
+
+    let (
+        terminal_res,
+        terminal_fb,
+        event_loop,
+        display,
+        program,
+        ui_program,
+        params,
+        ui_params,
+        mut game,
+    ) = init_type;
 
     game_init(&mut game, &display);
 
