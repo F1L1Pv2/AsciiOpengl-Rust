@@ -1,7 +1,7 @@
 use fontdue::Font;
 use super::super::core::Game;
 use super::super::scene::Scene;
-use super::super::object::Object;
+use super::super::object::{Object, TextureFilter};
 use super::super::matrices::model_matrix;
 use super::super::ui::{draw_rect, draw_text};
 
@@ -16,6 +16,7 @@ pub fn game_init(
         Object::new(
             "src/engine/example/assets/models/monke.obj",
             None,
+            TextureFilter::Linear,
             model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
         )
@@ -29,6 +30,7 @@ pub fn game_init(
         Object::new(
             "src/engine/example/assets/models/cube.obj",
             "src/engine/example/assets/sprites/exampletexture.png".into(),
+            TextureFilter::Linear,
             model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
         )
@@ -38,6 +40,7 @@ pub fn game_init(
         Object::new(
             "src/engine/example/assets/models/cube.obj",
             None,
+            TextureFilter::Linear,
             model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
         )
@@ -47,6 +50,7 @@ pub fn game_init(
         Object::new(
             "src/engine/example/assets/models/cube.obj",
             None,
+            TextureFilter::Linear,
             model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
         )
@@ -56,6 +60,7 @@ pub fn game_init(
         Object::new(
             "src/engine/example/assets/models/cube.obj",
             None,
+            TextureFilter::Linear,
             model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
         )
@@ -73,5 +78,5 @@ pub fn game_init(
 
     // return;
 
-    game.add_ui_elem(draw_rect(0.0, 0.5, 0.25, 0.5, "src/engine/example/assets/sprites/exampletexture.png", display));
+    game.add_ui_elem(draw_rect(0.0, 0.5, 0.25, 0.5, "src/engine/example/assets/sprites/exampletexture.png", TextureFilter::Linear, display));
 }

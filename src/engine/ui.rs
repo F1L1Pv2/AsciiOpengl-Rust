@@ -1,7 +1,7 @@
 use std::path::Path;
 use glium::texture::RawImage2d;
 use glium::texture::Texture2d;
-use super::object::Object;
+use super::object::{Object, TextureFilter};
 use super::object::Vertex;
 
 use image::ImageBuffer;
@@ -92,6 +92,7 @@ pub fn draw_text(
             vb: glium::VertexBuffer::new(display, &vertices).unwrap(),
             ib,
             texture,
+            texture_filter: TextureFilter::Nearest,
             model,
         };
 
@@ -109,6 +110,7 @@ pub fn draw_rect_tex(
     width: f32,
     height: f32,
     texture: Texture2d,
+    texture_filter: TextureFilter,
     display: &glium::Display
 ) -> Object {
     let height = height * 2.0;
@@ -156,6 +158,7 @@ pub fn draw_rect_tex(
     Object {
         model,
         texture,
+        texture_filter,
         vb,
         ib,
     }
@@ -168,6 +171,7 @@ pub fn draw_rect(
     width: f32,
     height: f32,
     texture_path: &str,
+    texture_filter: TextureFilter,
     display: &glium::Display
 ) -> Object {
     let image = image::open(Path::new(texture_path)).unwrap().to_rgba8();
@@ -221,6 +225,7 @@ pub fn draw_rect(
     Object {
         model,
         texture,
+        texture_filter,
         vb,
         ib,
     }

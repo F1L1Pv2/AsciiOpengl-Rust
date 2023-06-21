@@ -2,7 +2,7 @@
 
 use super::ascii_render::{ Color, TerminalFrameBuffer };
 use super::camera::Camera;
-use super::object::Object;
+use super::object::{Object, TextureFilter};
 // use super::matrices::{ model_matrix };
 // use super::prefab::{get_prefabs, PrefabList};
 use terminal_size::terminal_size;
@@ -279,6 +279,23 @@ where
 
                 for ui_elem in &game.get_ui_elems().elems {
 
+                    let behavior= match ui_elem.texture_filter {
+                        TextureFilter::Nearest => {
+                            glium::uniforms::SamplerBehavior {
+                                minify_filter:  glium::uniforms::MinifySamplerFilter::Nearest,
+                                magnify_filter: glium::uniforms::MagnifySamplerFilter::Nearest,
+                                ..Default::default()
+                            }
+                        }
+                        TextureFilter::Linear => {
+                            glium::uniforms::SamplerBehavior {
+                                minify_filter:  glium::uniforms::MinifySamplerFilter::Linear,
+                                magnify_filter: glium::uniforms::MagnifySamplerFilter::Linear,
+                                ..Default::default()
+                            }
+                        }
+                    };
+
                     // let behavior = glium::uniforms::SamplerBehavior {
                     //     minify_filter:  glium::uniforms::MinifySamplerFilter::Nearest,
                     //     magnify_filter: glium::uniforms::MagnifySamplerFilter::Nearest,
@@ -287,8 +304,8 @@ where
 
                     let uniforms =
                         uniform! {
-                        // tex: glium::uniforms::Sampler(&ui_elem.texture, behavior),
-                        tex: &ui_elem.texture,
+                        tex: glium::uniforms::Sampler(&ui_elem.texture, behavior),
+                        // tex: &ui_elem.texture,
                     };
 
                     framebuffer

@@ -15,10 +15,17 @@ pub struct Vertex {
 implement_vertex!(Vertex, position, normal, tex_coords);
 
 #[derive(Debug)]
+pub enum TextureFilter {
+    Nearest,
+    Linear,
+}
+
+#[derive(Debug)]
 pub struct Object {
     // pub name: String,
     pub model: [[f32; 4]; 4],
     pub texture: Texture2d,
+    pub texture_filter: TextureFilter,
     pub vb: glium::VertexBuffer<Vertex>,
     pub ib: glium::IndexBuffer<u32>,
 }
@@ -29,6 +36,7 @@ impl Object {
         // name: String,
         file_path: &str,
         texture_path: Option<&str>,
+        texture_filter: TextureFilter,
         model: [[f32; 4]; 4],
         display: &glium::Display
     ) -> Object {
@@ -103,6 +111,7 @@ impl Object {
             // name,
             model,
             texture: texture_val,
+            texture_filter,
             vb,
             ib,
         }
