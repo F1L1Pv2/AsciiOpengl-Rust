@@ -1,15 +1,9 @@
 #[macro_use]
 extern crate glium;
 
-// -----------------------------------------------------
-use fontdue::Font;
 //------------------ My stuff --------------------------
 mod engine;
-use engine::scene::Scene;
 use engine::core::{ init, run_event_loop };
-use engine::matrices::model_matrix;
-use engine::object::Object;
-use engine::ui::{ draw_text, draw_rect };
 use engine::game_loop::game_loop;
 use engine::game_init::game_init;
 // -----------------------------------------------------
@@ -24,7 +18,7 @@ fn main() {
         ui_program,
         params,
         ui_params,
-        mut game,
+        game,
     ) = init();
 
     // Main loop
