@@ -1,3 +1,5 @@
+// use std::fmt::Display;
+
 use super::ascii_render::{ Color, TerminalFrameBuffer };
 use super::camera::Camera;
 use super::object::Object;
@@ -7,7 +9,7 @@ use terminal_size::terminal_size;
 use device_query::{ DeviceState };
 use glium::{ glutin};
 use glium::Surface;
-use super::game_loop::game_loop;
+// use super::game_loop::game_loop;
 use super::scene::Scene;
 
 //create init type
@@ -35,6 +37,7 @@ pub struct Game {
     ui_elems: UiElems,
     current_scene: usize,
 }
+
 
 #[allow(dead_code)]
 impl Game {
@@ -158,19 +161,7 @@ pub fn init() -> InitType
 
 }
 
-type run_event_loop_type = (
-    (u32, u32),
-    TerminalFrameBuffer,
-    glutin::event_loop::EventLoop<()>,
-    glium::Display,
-    glium::Program,
-    glium::Program,
-    glium::DrawParameters<'static>,
-    glium::DrawParameters<'static>,
-    Game,
-);
-
-pub fn run_event_loop(
+pub fn run_event_loop<F,G>(
     terminal_res: (u32, u32),
     terminal_fb: TerminalFrameBuffer,
     event_loop: glutin::event_loop::EventLoop<()>,
@@ -180,7 +171,15 @@ pub fn run_event_loop(
     params: glium::DrawParameters<'static>,
     ui_params: glium::DrawParameters<'static>,
     mut game: Game,
-){
+    game_loop: F,
+    game_init: G,
+)
+where
+    F: Fn(&DeviceState, (u32, u32), &mut Game) + 'static,
+    G: Fn(&mut Game, &glium::Display) + 'static,
+{
+
+    game_init(&mut game, &display);
 
     let mut terminal_res = terminal_res;
     let mut terminal_fb = terminal_fb;
