@@ -15,7 +15,7 @@ const vec3 ambient_color = vec3(0.0, 0.0, 0.0);
 const vec3 specular_color = vec3(1.0, 1.0, 1.0);
 
 void main() {
-  float diffuse = max(dot(normalize(v_normal), normalize(u_light)), 0.0);
+  float diffuse = max(dot(normalize(v_normal), normalize(u_light)), 0.1);
 
   vec3 diffuse_color = texture(tex, v_tex_coords).rgb;
 

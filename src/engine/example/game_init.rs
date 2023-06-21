@@ -73,7 +73,7 @@ pub fn game_init(
         fontdue::FontSettings::default()
     ).unwrap();
 
-    game.add_ui_elems(draw_text(0.0, 0.0, "ballin", 3.0, &font, display));
+    game.add_ui_elems(draw_text(0.0, 0.0, "Text", 3.0, &font, display));
     // game.add_ui_elems(draw_text(0.0, 0.5, "b", 20.0, &font, &display));
 
     // return;

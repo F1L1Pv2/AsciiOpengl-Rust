@@ -296,12 +296,6 @@ where
                         }
                     };
 
-                    // let behavior = glium::uniforms::SamplerBehavior {
-                    //     minify_filter:  glium::uniforms::MinifySamplerFilter::Nearest,
-                    //     magnify_filter: glium::uniforms::MagnifySamplerFilter::Nearest,
-                    //     ..Default::default()
-                    // };
-
                     let uniforms =
                         uniform! {
                         tex: glium::uniforms::Sampler(&ui_elem.texture, behavior),
