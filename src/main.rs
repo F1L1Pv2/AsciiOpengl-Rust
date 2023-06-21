@@ -22,6 +22,7 @@ fn main() {
     ) = init();
 
     let mut pause = false;
+    // let mut last_mouse_pos = (0, 0);
 
     // Main loop
     run_event_loop(
