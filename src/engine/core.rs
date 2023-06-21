@@ -171,12 +171,12 @@ pub fn run_event_loop<F,G>(
     params: glium::DrawParameters<'static>,
     ui_params: glium::DrawParameters<'static>,
     mut game: Game,
-    game_loop: F,
-    game_init: G,
+    mut game_loop: F,
+    mut game_init: G,
 )
 where
-    F: Fn(&DeviceState, (u32, u32), &mut Game) + 'static,
-    G: Fn(&mut Game, &glium::Display) + 'static,
+    F: FnMut(&DeviceState, (u32, u32), &mut Game) + 'static,
+    G: FnMut(&mut Game, &glium::Display) + 'static,
 {
 
     game_init(&mut game, &display);

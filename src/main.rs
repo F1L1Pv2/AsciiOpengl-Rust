@@ -4,8 +4,8 @@ extern crate glium;
 //------------------ My stuff --------------------------
 mod engine;
 use engine::core::{ init, run_event_loop };
-use engine::game_loop::game_loop;
-use engine::game_init::game_init;
+use engine::example::game_loop::game_loop;
+use engine::example::game_init::game_init;
 // -----------------------------------------------------
 
 fn main() {
@@ -21,6 +21,8 @@ fn main() {
         game,
     ) = init();
 
+    let mut pause = false;
+
     // Main loop
     run_event_loop(
         terminal_res,
@@ -32,11 +34,11 @@ fn main() {
         params,
         ui_params,
         game,
-        |device_state, terminal_res, game| {
-            game_loop(device_state, terminal_res, game);
+        move |device_state, terminal_res, game| {
+            game_loop(device_state, terminal_res, game, &mut pause);
         },
-        |game, display| {
+        move |game, display| {
             game_init(game, display);
-        },
+        }
     );
 }

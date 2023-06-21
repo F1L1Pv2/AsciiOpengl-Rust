@@ -1,9 +1,10 @@
 use fontdue::Font;
-use super::core::Game;
-use super::scene::Scene;
-use super::object::Object;
-use super::ui::{draw_text, draw_rect};
-use super::matrices::model_matrix;
+use super::super::core::Game;
+use super::super::scene::Scene;
+use super::super::object::Object;
+use super::super::matrices::model_matrix;
+use super::super::ui::{draw_rect, draw_text};
+
 
 pub fn game_init(
     game: &mut Game,
@@ -13,7 +14,7 @@ pub fn game_init(
 
     scene.add_object(
         Object::new(
-            "assets/models/monke.obj",
+            "src/engine/example/assets/models/monke.obj",
             None,
             model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
@@ -26,8 +27,8 @@ pub fn game_init(
 
     scene.add_object(
         Object::new(
-            "assets/models/cube.obj",
-            "assets/sprites/align.png".into(),
+            "src/engine/example/assets/models/cube.obj",
+            "src/engine/example/assets/sprites/align.png".into(),
             model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
         )
@@ -35,7 +36,7 @@ pub fn game_init(
 
     scene.add_object(
         Object::new(
-            "assets/models/cube.obj",
+            "src/engine/example/assets/models/cube.obj",
             None,
             model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
@@ -44,7 +45,7 @@ pub fn game_init(
 
     scene.add_object(
         Object::new(
-            "assets/models/cube.obj",
+            "src/engine/example/assets/models/cube.obj",
             None,
             model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
@@ -53,7 +54,7 @@ pub fn game_init(
 
     scene.add_object(
         Object::new(
-            "assets/models/cube.obj",
+            "src/engine/example/assets/models/cube.obj",
             None,
             model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
@@ -63,7 +64,7 @@ pub fn game_init(
     game.add_scene(scene);
 
     let font = Font::from_bytes(
-        include_bytes!("../../assets/fonts/Roboto-Regular.ttf") as &[u8],
+        include_bytes!("assets/fonts/Roboto-Regular.ttf") as &[u8],
         fontdue::FontSettings::default()
     ).unwrap();
 
@@ -72,5 +73,5 @@ pub fn game_init(
 
     // return;
 
-    game.add_ui_elem(draw_rect(0.0, 0.75, 0.25, 0.25, "assets/sprites/align.png", display));
+    game.add_ui_elem(draw_rect(0.0, 0.75, 0.25, 0.25, "src/engine/example/assets/sprites/align.png", display));
 }

@@ -1,11 +1,12 @@
 // WIP
 use device_query::{ DeviceState, DeviceQuery, Keycode };
-use super::core::Game;
+use super::super::core::Game;
 
 pub fn game_loop(
     device_state: &DeviceState,
     terminal_res: (u32, u32),
     game: &mut Game,
+    pause: &mut bool,
 ) {
 
     // let _game = game;
@@ -49,8 +50,9 @@ pub fn game_loop(
             }
             Keycode::Escape => {
                 //clear the terminal
-                print!("\x1B[2J\x1B[1;1H");
-                std::process::exit(0);
+                // print!("\x1B[2J\x1B[1;1H");
+                // std::process::exit(0);
+                *pause = !*pause;
             }
             Keycode::Q => {
                 game.set_scene(0);
@@ -61,5 +63,7 @@ pub fn game_loop(
             _ => (),
         }
     }
-    game.camera.update(terminal_res, move_vector, mouse_vector);
+    if !*pause {
+        game.camera.update(terminal_res, move_vector, mouse_vector);
+    }
 }
