@@ -28,7 +28,7 @@ pub fn game_init(
     scene.add_object(
         Object::new(
             "src/engine/example/assets/models/cube.obj",
-            "src/engine/example/assets/sprites/align.png".into(),
+            "src/engine/example/assets/sprites/exampletexture.png".into(),
             model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
             display
         )
@@ -73,5 +73,5 @@ pub fn game_init(
 
     // return;
 
-    game.add_ui_elem(draw_rect(0.0, 0.75, 0.25, 0.25, "src/engine/example/assets/sprites/align.png", display));
+    game.add_ui_elem(draw_rect(0.0, 0.5, 0.25, 0.5, "src/engine/example/assets/sprites/exampletexture.png", display));
 }
