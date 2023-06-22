@@ -161,6 +161,39 @@ pub fn init() -> InitType
 
 }
 
+#[macro_export]
+macro_rules! game_loop {
+    ($game_loop_func:expr $(, $param:expr)* $(,)?) => {
+        move |device_state, terminal_res, game| {
+            $game_loop_func(device_state, terminal_res, game $(, $param)*);
+        }
+    };
+}
+
+/*
+move |game, display| {
+            game_init(game, display);
+        },
+ */
+
+// #[macro_export]
+// macro_rules! game_init {
+//     ($game_init_func:expr, $($param:expr),*) => {
+//         move |game, display| {
+//             $game_init_func(game, display, $($param),*);
+//         }
+//     };
+// }
+
+#[macro_export]
+macro_rules! game_init {
+    ($game_init_func:expr $(, $param:expr)* $(,)?) => {
+        move |game, display| {
+            $game_init_func(game, display $(, $param)*);
+        }
+    };
+}
+
 pub fn run_event_loop<F,G>(
     // terminal_res: (u32, u32),
     // terminal_fb: TerminalFrameBuffer,

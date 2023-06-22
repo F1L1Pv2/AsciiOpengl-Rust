@@ -16,11 +16,7 @@ fn main() {
     // Main loop
     run_event_loop(
         init(),
-        move |device_state, terminal_res, game| {
-            game_loop(device_state, terminal_res, game, &mut pause);
-        },
-        move |game, display| {
-            game_init(game, display);
-        },
+        game_loop!(game_loop, &mut pause),
+        game_init!(game_init),
     );
 }
