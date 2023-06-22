@@ -14,9 +14,8 @@ fn main() {
     // let mut last_mouse_pos = (0, 0);
 
     // Main loop
-    run_event_loop(
-        init(),
+    init_engine!(
         game_loop!(game_loop, &mut pause),
-        game_init!(game_init),
-    );
+        game_init!(game_init)
+    )
 }

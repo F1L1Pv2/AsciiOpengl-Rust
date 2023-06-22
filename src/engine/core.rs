@@ -162,6 +162,10 @@ pub fn init() -> InitType
 }
 
 #[macro_export]
+/// The `game_loop` macro creates a game loop function with ability to pass additional parameters.
+/// NOTE: The game loop function must have the following signature:
+/// `fn(&DeviceState, (u32, u32), &mut Game, ...)`
+/// where `...` is the list of additional parameters.
 macro_rules! game_loop {
     ($game_loop_func:expr $(, $param:expr)* $(,)?) => {
         move |device_state, terminal_res, game| {
@@ -170,22 +174,11 @@ macro_rules! game_loop {
     };
 }
 
-/*
-move |game, display| {
-            game_init(game, display);
-        },
- */
-
-// #[macro_export]
-// macro_rules! game_init {
-//     ($game_init_func:expr, $($param:expr),*) => {
-//         move |game, display| {
-//             $game_init_func(game, display, $($param),*);
-//         }
-//     };
-// }
-
 #[macro_export]
+/// The `game_init` macro creates a game init function with ability to pass additional parameters.
+/// NOTE: The game init function must have the following signature:
+/// `fn(&mut Game, &glium::Display, ...)`
+/// where `...` is the list of additional parameters.
 macro_rules! game_init {
     ($game_init_func:expr $(, $param:expr)* $(,)?) => {
         move |game, display| {
@@ -194,16 +187,28 @@ macro_rules! game_init {
     };
 }
 
+
+#[macro_export]
+/// The `init_engine` macro creates a game loop function and a game init function and runs the game.
+/// NOTE: recommended to use macro `game_loop!` to create the game loop function and `game_init!` to create the game init function.
+/// NOTE: The game loop function must have the following signature:
+/// `fn(&DeviceState, (u32, u32), &mut Game, ...)`
+/// where `...` is the list of additional parameters.
+/// NOTE: The game init function must have the following signature:
+/// `fn(&mut Game, &glium::Display, ...)`
+/// where `...` is the list of additional parameters.
+/// NOTE: The `init_engine` macro must be called in the main function.
+macro_rules! init_engine {
+    ($game_loop_func:expr, $game_init_func:expr) => {
+        $crate::run_event_loop(
+            $crate::init(),
+            $game_loop_func,
+            $game_init_func,
+        )
+    };
+}
+
 pub fn run_event_loop<F,G>(
-    // terminal_res: (u32, u32),
-    // terminal_fb: TerminalFrameBuffer,
-    // event_loop: glutin::event_loop::EventLoop<()>,
-    // display: glium::Display,
-    // program: glium::Program,
-    // ui_program: glium::Program,
-    // params: glium::DrawParameters<'static>,
-    // ui_params: glium::DrawParameters<'static>,
-    // mut game: Game,
     init_type: InitType,
     mut game_loop: F,
     mut game_init: G,
