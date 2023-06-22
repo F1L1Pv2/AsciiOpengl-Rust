@@ -11,6 +11,7 @@ impl Scene {
         }
     }
 
+    /// Adds an object to the scene
     pub fn add_object(&mut self, object: Object) {
         self.objects.push(object);
     }

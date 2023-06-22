@@ -50,32 +50,39 @@ impl Game {
         }
     }
 
+    /// Add a scene to the game
     pub fn add_scene(&mut self, scene: Scene) {
         self.scenes.push(scene);
     }
 
+    /// Set the current scene
     pub fn set_scene(&mut self, scene: usize) {
         self.current_scene = scene;
     }
 
+    /// Get the current scene
     pub fn get_scene(&self) -> &Scene {
         &self.scenes[self.current_scene]
     }
 
+    /// Get the current scene as mutable
     pub fn get_scene_mut(&mut self) -> &mut Scene {
         &mut self.scenes[self.current_scene]
     }
 
+    /// add a ui element to the game
     pub fn add_ui_elem(&mut self, elem: Object) {
         self.ui_elems.elems.push(elem);
     }
 
+    /// add a vector of ui elements to the game
     pub fn add_ui_elems(&mut self, elems: Vec<Object>) {
         for elem in elems {
             self.ui_elems.elems.push(elem);
         }
     }
 
+    /// get the ui elements
     pub fn get_ui_elems(&self) -> &UiElems {
         &self.ui_elems
     }

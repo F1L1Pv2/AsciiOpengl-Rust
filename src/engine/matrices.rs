@@ -1,4 +1,5 @@
-fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
+/// Rotates a matrix around the x axis in radians
+pub fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
     [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, angle.cos(), -angle.sin(), 0.0],
@@ -7,7 +8,8 @@ fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
     ]
 }
 
-fn rotate_y(angle: f32) -> [[f32; 4]; 4] {
+/// Rotates a matrix around the y axis in radians
+pub fn rotate_y(angle: f32) -> [[f32; 4]; 4] {
     [
         [angle.cos(), 0.0, angle.sin(), 0.0],
         [0.0, 1.0, 0.0, 0.0],
@@ -16,7 +18,8 @@ fn rotate_y(angle: f32) -> [[f32; 4]; 4] {
     ]
 }
 
-fn rotate_z(angle: f32) -> [[f32; 4]; 4] {
+/// Rotates a matrix around the z axis in radians
+pub fn rotate_z(angle: f32) -> [[f32; 4]; 4] {
     [
         [angle.cos(), -angle.sin(), 0.0, 0.0],
         [angle.sin(), angle.cos(), 0.0, 0.0],
@@ -25,7 +28,8 @@ fn rotate_z(angle: f32) -> [[f32; 4]; 4] {
     ]
 }
 
-fn scale_mat(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
+/// Scales a matrix
+pub fn scale_mat(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
     [
         [x, 0.0, 0.0, 0.0],
         [0.0, y, 0.0, 0.0],
@@ -34,7 +38,8 @@ fn scale_mat(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
     ]
 }
 
-fn translate(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
+/// Translates a matrix
+pub fn translate(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
     [
         [1.0, 0.0, 0.0, 0.0],
         [0.0, 1.0, 0.0, 0.0],
@@ -43,7 +48,8 @@ fn translate(x: f32, y: f32, z: f32) -> [[f32; 4]; 4] {
     ]
 }
 
-//create macro for matrix multiplication
+#[macro_export]
+/// Multiplies two matrices
 macro_rules! mat_mul {
     ($a:expr, $b:expr) => {{
         let mut result = [[0.0; 4]; 4];
@@ -77,6 +83,7 @@ macro_rules! mat_mul {
 //     ]
 // };
 
+/// Returns an identity matrix (no transformation)
 pub fn identity_matrix() -> [[f32; 4]; 4] {
     [
         [1.0, 0.0, 0.0, 0.0f32],
@@ -86,6 +93,7 @@ pub fn identity_matrix() -> [[f32; 4]; 4] {
     ]
 }
 
+/// Returns a model matrix for the given position, rotation (in radians) and scale.
 pub fn model_matrix(position: &[f32; 3], rotation: &[f32; 3], scale: &[f32; 3]) -> [[f32; 4]; 4] {
     let mut m = identity_matrix();
 
@@ -98,6 +106,7 @@ pub fn model_matrix(position: &[f32; 3], rotation: &[f32; 3], scale: &[f32; 3]) 
     m
 }
 
+/// Returns a perspective matrix for the given position and rotation.
 pub fn perspective_matrix(terminal_size: (u32, u32)) -> [[f32; 4]; 4] {
     let (width, height) = terminal_size;
     let width = width as u16;
@@ -118,6 +127,8 @@ pub fn perspective_matrix(terminal_size: (u32, u32)) -> [[f32; 4]; 4] {
     ]
 }
 
+
+/// Returns a view matrix for the given position and rotation.
 pub fn view_matrix(position: &[f32; 3], rotation: &[f32; 3]) -> [[f32; 4]; 4] {
     let mut m = [
         [1.0, 0.0, 0.0, 0.0f32],

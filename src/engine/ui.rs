@@ -8,6 +8,7 @@ use fontdue::Font;
 use image::ImageBuffer;
 
 #[allow(dead_code)]
+/// writes text to the screen at the given origin with the given size and font
 pub fn draw_text(
     origin_x: f32,
     origin_y: f32,
@@ -102,6 +103,7 @@ pub fn draw_text(
 }
 
 #[allow(dead_code)]
+/// draws a rectangle with given  texture
 pub fn draw_rect_tex(
     x: f32,
     y: f32,
@@ -162,6 +164,7 @@ pub fn draw_rect_tex(
 }
 
 #[allow(dead_code)]
+/// draws a rectangle with texture from given path
 pub fn draw_rect(
     x: f32,
     y: f32,
