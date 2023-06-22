@@ -191,13 +191,6 @@ macro_rules! game_init {
 #[macro_export]
 /// The `init_engine` macro creates a game loop function and a game init function and runs the game.
 /// NOTE: recommended to use macro `game_loop!` to create the game loop function and `game_init!` to create the game init function.
-/// NOTE: The game loop function must have the following signature:
-/// `fn(&DeviceState, (u32, u32), &mut Game, ...)`
-/// where `...` is the list of additional parameters.
-/// NOTE: The game init function must have the following signature:
-/// `fn(&mut Game, &glium::Display, ...)`
-/// where `...` is the list of additional parameters.
-/// NOTE: The `init_engine` macro must be called in the main function.
 macro_rules! init_engine {
     ($game_loop_func:expr, $game_init_func:expr) => {
         $crate::run_event_loop(
