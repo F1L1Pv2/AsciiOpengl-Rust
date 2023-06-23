@@ -132,7 +132,7 @@ pub fn init() -> InitType
         blend: glium::Blend::alpha_blending(),
         //set texture filtering to nearest
 
-        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+        backface_culling: glium::draw_parameters::BackfaceCullingMode::CullCounterClockwise,
         ..Default::default()
     };
 
@@ -140,7 +140,7 @@ pub fn init() -> InitType
         blend: glium::Blend::alpha_blending(),
         //set texture filtering to nearest
 
-        //backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
+        backface_culling: glium::draw_parameters::BackfaceCullingMode::CullCounterClockwise,
         ..Default::default()
     };
 
