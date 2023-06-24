@@ -1,7 +1,9 @@
 [package]
 name = "ascii_opengl_rust"
+authors = ["F1L1Pv2 <filipscave@gmail.com>", "Alan Klas <github@alanklas.com>"]
 version = "0.1.0"
 edition = "2021"
+description = "Ascii Game Engine written in Rust using OpenGL."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

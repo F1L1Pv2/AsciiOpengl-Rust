@@ -4,9 +4,8 @@ Ascii Game Engine written in Rust using OpenGL (Glium)
 
 To run `cargo run --release`
 
-currently `cargo run` will give overflow errors (WIP)
+## TODO
 
-# TODO
 - [x] Textures
 - [ ] Scene editor
 - [x] Scene loader

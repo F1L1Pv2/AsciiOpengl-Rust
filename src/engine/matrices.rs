@@ -127,7 +127,6 @@ pub fn perspective_matrix(terminal_size: (u32, u32)) -> [[f32; 4]; 4] {
     ]
 }
 
-
 /// Returns a view matrix for the given position and rotation.
 pub fn view_matrix(position: &[f32; 3], rotation: &[f32; 3]) -> [[f32; 4]; 4] {
     let mut m = [

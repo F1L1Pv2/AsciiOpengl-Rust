@@ -1,6 +1,6 @@
 // WIP
-use device_query::{ DeviceState, DeviceQuery, Keycode };
 use super::super::core::Game;
+use device_query::{DeviceQuery, DeviceState, Keycode};
 
 pub fn game_loop(
     device_state: &DeviceState,
@@ -9,7 +9,6 @@ pub fn game_loop(
     pause: &mut bool,
     // last_mouse_pos: &mut (i32, i32),
 ) {
-
     // let mouse_sensitive = 0.1;
 
     let mut move_vector = [0, 0, 0];
@@ -25,7 +24,6 @@ pub fn game_loop(
     // println!("mouse pos: {:?}", mouse_pos);
 
     // let mouse_delta = (mouse_pos.0 - last_mouse_pos.0, mouse_pos.1 - last_mouse_pos.1);
-
 
     // //normalize vector without termianl_res
     // let mouse_delta_len = (mouse_delta.0 as f32 * mouse_delta.0 as f32 + mouse_delta.1 as f32 * mouse_delta.1 as f32).sqrt();

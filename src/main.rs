@@ -9,13 +9,9 @@ use engine::example::game_loop::game_loop;
 // -----------------------------------------------------
 
 fn main() {
-
     let mut pause = false;
     // let mut last_mouse_pos = (0, 0);
 
     // Main loop
-    init_engine!(
-        game_loop!(game_loop, &mut pause),
-        game_init!(game_init)
-    )
+    init_engine!(game_loop!(game_loop, &mut pause), game_init!(game_init));
 }
