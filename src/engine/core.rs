@@ -36,6 +36,7 @@ pub struct Game {
     pub camera: Camera,
     ui_elems: UiElems,
     current_scene: usize,
+    pub delta_time: f32,
 }
 
 #[allow(dead_code)]
@@ -46,6 +47,7 @@ impl Game {
             ui_elems: UiElems { elems: Vec::new() },
             camera,
             current_scene: 0,
+            delta_time: 0.0,
         }
     }
 
@@ -57,6 +59,11 @@ impl Game {
     /// Set the current scene
     pub fn set_scene(&mut self, scene: usize) {
         self.current_scene = scene;
+    }
+
+    /// Get the current scene index
+    pub fn get_scene_index(&self) -> usize {
+        self.current_scene
     }
 
     /// Get the current scene

@@ -88,8 +88,10 @@ pub fn draw_text(
             [0.0, 0.0, 1.0, 1.0f32],
         ];
 
+
         let object = Object {
             vb: glium::VertexBuffer::new(display, &vertices).unwrap(),
+            vertices,
             ib,
             texture,
             texture_filter: TextureFilter::Nearest,
@@ -154,10 +156,12 @@ pub fn draw_rect_tex(
         [0.0, 0.0, 0.0, 1.0f32],
     ];
 
+
     Object {
         model,
         texture,
         texture_filter,
+        vertices,
         vb,
         ib,
     }
@@ -221,10 +225,12 @@ pub fn draw_rect(
         [0.0, 0.0, 0.0, 1.0f32],
     ];
 
+
     Object {
         model,
         texture,
         texture_filter,
+        vertices,
         vb,
         ib,
     }
