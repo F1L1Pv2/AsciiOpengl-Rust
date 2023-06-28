@@ -2,7 +2,7 @@
 
 Ascii Game Engine written in Rust using OpenGL (Glium)
 
-To run `cargo run --release`
+To run example run `cargo run --example basic_example`
 
 ## TODO
 
@@ -23,5 +23,6 @@ To run `cargo run --release`
 - [x] Shaders
 - [x] KeyboardInput
 - [ ] MouseInput
+- [x] Lib
 
 more may be added later

@@ -234,7 +234,7 @@ macro_rules! game_init {
 /// NOTE: recommended to use macro `game_loop!` to create the game loop function and `game_init!` to create the game init function.
 macro_rules! init_engine {
     ($game_loop_func:expr, $game_init_func:expr, $assets_path:expr) => {
-        $crate::run_event_loop($crate::init($assets_path), $game_loop_func, $game_init_func);
+        ascii_opengl_rust::engine::core::run_event_loop(ascii_opengl_rust::engine::core::init($assets_path), $game_loop_func, $game_init_func);
     };
 }
 

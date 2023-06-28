@@ -1,15 +1,15 @@
-use super::super::core::Game;
-use super::super::matrices::model_matrix;
-use super::super::object::{Object, TextureFilter};
-use super::super::scene::Scene;
-use super::super::ui::{draw_rect, draw_text};
+use ascii_opengl_rust::engine::core::Game;
+use ascii_opengl_rust::engine::matrices::model_matrix;
+use ascii_opengl_rust::engine::object::{Object, TextureFilter};
+use ascii_opengl_rust::engine::scene::Scene;
+use ascii_opengl_rust::engine::ui::{draw_rect, draw_text};
 use fontdue::Font;
 
 pub fn game_init(game: &mut Game, display: &glium::Display) {
     let mut scene: Scene = Scene::new();
 
     scene.add_object(Object::new(
-        "src/engine/example/assets/models/monke.obj",
+        "examples/basic_example_res/assets/models/monke.obj",
         None,
         TextureFilter::Linear,
         model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
@@ -21,15 +21,15 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
     let mut scene = Scene::new();
 
     scene.add_object(Object::new(
-        "src/engine/example/assets/models/cube.obj",
-        "src/engine/example/assets/sprites/exampletexture.png".into(),
+        "examples/basic_example_res/assets/models/cube.obj",
+        "examples/basic_example_res/assets/sprites/exampletexture.png".into(),
         TextureFilter::Linear,
         model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
         display,
     ));
 
     scene.add_object(Object::new(
-        "src/engine/example/assets/models/cube.obj",
+        "examples/basic_example_res/assets/models/cube.obj",
         None,
         TextureFilter::Linear,
         model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
@@ -37,7 +37,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
     ));
 
     scene.add_object(Object::new(
-        "src/engine/example/assets/models/cube.obj",
+        "examples/basic_example_res/assets/models/cube.obj",
         None,
         TextureFilter::Linear,
         model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
@@ -45,7 +45,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
     ));
 
     scene.add_object(Object::new(
-        "src/engine/example/assets/models/cube.obj",
+        "examples/basic_example_res/assets/models/cube.obj",
         None,
         TextureFilter::Linear,
         model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
@@ -70,7 +70,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
         0.5,
         0.25,
         0.5,
-        "src/engine/example/assets/sprites/exampletexture.png",
+        "examples/basic_example_res/assets/sprites/exampletexture.png",
         TextureFilter::Linear,
         display,
     ));

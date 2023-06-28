@@ -1,5 +1,5 @@
 // WIP
-use super::super::core::Game;
+use ascii_opengl_rust::engine::core::Game;
 use device_query::{DeviceQuery, DeviceState, Keycode};
 
 pub fn game_loop(
