@@ -94,7 +94,7 @@ impl Game {
     }
 }
 
-pub fn init() -> InitType {
+pub fn init(assets_path: &str) -> InitType {
     let terminal_res = terminal_size().unwrap();
     let terminal_res: (u32, u32) = (u32::from(terminal_res.0 .0), u32::from(terminal_res.1 .0));
 
@@ -116,10 +116,18 @@ pub fn init() -> InitType {
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
     //read vertex shader source code from file
-    let vertex_shader_src = std::fs::read_to_string("assets/shaders/vertex_shader.glsl")
+    // let vertex_shader_src = std::fs::read_to_string("assets/shaders/vertex_shader.glsl")
+        // .expect("Failed to read vertex shader source code from file");
+
+    let vertex_path = format!("{}/shaders/vertex_shader.glsl", assets_path);
+    let vertex_shader_src = std::fs::read_to_string(vertex_path)
         .expect("Failed to read vertex shader source code from file");
 
-    let fragment_shader_src = std::fs::read_to_string("assets/shaders/fragment_shader.glsl")
+    // let fragment_shader_src = std::fs::read_to_string("assets/shaders/fragment_shader.glsl")
+        // .expect("Failed to read fragment shader source code from file");
+
+    let fragment_path = format!("{}/shaders/fragment_shader.glsl", assets_path);
+    let fragment_shader_src = std::fs::read_to_string(fragment_path)
         .expect("Failed to read fragment shader source code from file");
 
     let program = glium::Program::from_source(
@@ -149,10 +157,18 @@ pub fn init() -> InitType {
         ..Default::default()
     };
 
-    let ui_vertex_shader_src = std::fs::read_to_string("assets/shaders/ui_vertex.glsl")
+    // let ui_vertex_shader_src = std::fs::read_to_string("assets/shaders/ui_vertex.glsl")
+    //     .expect("Failed to read vertex shader source code from file");
+
+    let ui_vertex_path = format!("{}/shaders/ui_vertex.glsl", assets_path);
+    let ui_vertex_shader_src = std::fs::read_to_string(ui_vertex_path)
         .expect("Failed to read vertex shader source code from file");
 
-    let ui_fragment_shader_src = std::fs::read_to_string("assets/shaders/ui_fragment.glsl")
+    // let ui_fragment_shader_src = std::fs::read_to_string("assets/shaders/ui_fragment.glsl")
+    //     .expect("Failed to read fragment shader source code from file");
+
+    let ui_fragment_path = format!("{}/shaders/ui_fragment.glsl", assets_path);
+    let ui_fragment_shader_src = std::fs::read_to_string(ui_fragment_path)
         .expect("Failed to read fragment shader source code from file");
 
     let ui_program = glium::Program::from_source(
@@ -214,10 +230,11 @@ macro_rules! game_init {
 
 #[macro_export]
 /// The `init_engine` macro creates a game loop function and a game init function and runs the game.
+/// NOTE: You need to pass the path to the assets folder as the third argument.
 /// NOTE: recommended to use macro `game_loop!` to create the game loop function and `game_init!` to create the game init function.
 macro_rules! init_engine {
-    ($game_loop_func:expr, $game_init_func:expr) => {
-        $crate::run_event_loop($crate::init(), $game_loop_func, $game_init_func)
+    ($game_loop_func:expr, $game_init_func:expr, $assets_path:expr) => {
+        $crate::run_event_loop($crate::init($assets_path), $game_loop_func, $game_init_func);
     };
 }
 

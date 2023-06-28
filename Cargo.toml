@@ -7,6 +7,10 @@ description = "Ascii Game Engine written in Rust using OpenGL."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+# [lib]
+# crate-type = ["rlib", "dylib"]
+# path = "src/lib.rs"
+
 [dependencies]
 glium = "0.32.1"
 image = "0.24.6"
