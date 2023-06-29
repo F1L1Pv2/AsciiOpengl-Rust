@@ -37,17 +37,19 @@ pub struct Game {
     ui_elems: UiElems,
     current_scene: usize,
     pub delta_time: f32,
+    pub assets_path: String,
 }
 
 #[allow(dead_code)]
 impl Game {
-    pub fn new(camera: Camera) -> Game {
+    pub fn new(camera: Camera, assets_path: String) -> Game {
         Game {
             scenes: Vec::new(),
             ui_elems: UiElems { elems: Vec::new() },
             camera,
             current_scene: 0,
             delta_time: 0.0,
+            assets_path,
         }
     }
 
@@ -146,7 +148,7 @@ pub fn init(assets_path: &str) -> InitType {
         },
         blend: glium::Blend::alpha_blending(),
         //set texture filtering to nearest
-        backface_culling: glium::draw_parameters::BackfaceCullingMode::CullCounterClockwise,
+        backface_culling: glium::draw_parameters::BackfaceCullingMode::CullClockwise,
         ..Default::default()
     };
 
@@ -187,7 +189,7 @@ pub fn init(assets_path: &str) -> InitType {
         terminal_res,
     );
 
-    let game = Game::new(camera);
+    let game = Game::new(camera, assets_path.to_string());
 
     (
         terminal_res,

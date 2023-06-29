@@ -1,0 +1,78 @@
+[
+    {
+        "Cube": {
+            "model_path": "/models/Cube.obj",
+            "texture_path": "/sprites/exampletexture.png",
+            "model_matrix": {
+                "position": [
+                    0.0,
+                    -2.967487335205078,
+                    0.0
+                ],
+                "rotation": [
+                    1.570796251296997,
+                    -0.7853981852531433,
+                    7.549790126404332e-08
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "tags": [
+                "cube",
+                "ballzy",
+                "ball"
+            ]
+        }
+    },
+    {
+        "Suzanne": {
+            "model_path": "/models/Suzanne.obj",
+            "texture_path": null,
+            "model_matrix": {
+                "position": [
+                    0.0,
+                    2.6077077388763428,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    -0.0,
+                    0.7853981852531433
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "tags": []
+        }
+    },
+    {
+        "baller": {
+            "model_path": "/models/baller.obj",
+            "texture_path": null,
+            "model_matrix": {
+                "position": [
+                    -3.8356661796569824,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.20778338611125946,
+                    -0.6682444214820862,
+                    -0.36017659306526184
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "tags": []
+        }
+    }
+]

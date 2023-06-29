@@ -8,6 +8,8 @@ use fontdue::Font;
 pub fn game_init(game: &mut Game, display: &glium::Display) {
     let mut scene: Scene = Scene::new();
 
+    game.add_scene(Scene::load_from_json("/scenes/scene1.json",game.assets_path.as_str(), display).unwrap());
+
     scene.add_object(Object::new(
         "examples/basic_example_res/assets/models/monke.obj",
         None,
@@ -19,45 +21,47 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
 
     game.add_scene(scene);
 
-    let mut scene = Scene::new();
 
-    scene.add_object(Object::new(
-        "examples/basic_example_res/assets/models/cube.obj",
-        "examples/basic_example_res/assets/sprites/exampletexture.png".into(),
-        TextureFilter::Linear,
-        model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
-        display,
-        vec!["cube".to_string()]
-    ));
 
-    scene.add_object(Object::new(
-        "examples/basic_example_res/assets/models/cube.obj",
-        None,
-        TextureFilter::Linear,
-        model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
-        display,
-        vec!["cube".to_string()]
-    ));
+    // let mut scene = Scene::new();
 
-    scene.add_object(Object::new(
-        "examples/basic_example_res/assets/models/cube.obj",
-        None,
-        TextureFilter::Linear,
-        model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
-        display,
-        vec!["cube".to_string()]
-    ));
+    // scene.add_object(Object::new(
+    //     "examples/basic_example_res/assets/models/cube.obj",
+    //     "examples/basic_example_res/assets/sprites/exampletexture.png".into(),
+    //     TextureFilter::Linear,
+    //     model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+    //     display,
+    //     vec!["cube".to_string()]
+    // ));
 
-    scene.add_object(Object::new(
-        "examples/basic_example_res/assets/models/cube.obj",
-        None,
-        TextureFilter::Linear,
-        model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
-        display,
-        vec!["cube".to_string()]
-    ));
+    // scene.add_object(Object::new(
+    //     "examples/basic_example_res/assets/models/cube.obj",
+    //     None,
+    //     TextureFilter::Linear,
+    //     model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+    //     display,
+    //     vec!["cube".to_string()]
+    // ));
 
-    game.add_scene(scene);
+    // scene.add_object(Object::new(
+    //     "examples/basic_example_res/assets/models/cube.obj",
+    //     None,
+    //     TextureFilter::Linear,
+    //     model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+    //     display,
+    //     vec!["cube".to_string()]
+    // ));
+
+    // scene.add_object(Object::new(
+    //     "examples/basic_example_res/assets/models/cube.obj",
+    //     None,
+    //     TextureFilter::Linear,
+    //     model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
+    //     display,
+    //     vec!["cube".to_string()]
+    // ));
+
+    // game.add_scene(scene);
 
     let font = Font::from_bytes(
         include_bytes!("assets/fonts/Roboto-Regular.ttf") as &[u8],

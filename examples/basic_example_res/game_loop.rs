@@ -87,10 +87,15 @@ pub fn game_loop(
                 game.set_scene(1);
             }
             _ => (),
+            
         }
     }
     if !*pause {
         game.camera.update(terminal_res, move_vector, mouse_vector);
+
+        // for object in game.get_scene().objects.iter() {
+        //     println!("object: {:?}", object.model);
+        // }
         // game.camera.player_rot[0] += mouse_delta.1 as f32 * mouse_sensitive;
         // game.camera.player_rot[1] += mouse_delta.0 as f32 * mouse_sensitive;
     }

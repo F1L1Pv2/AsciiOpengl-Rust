@@ -1,30 +1,66 @@
-/// Rotates a matrix around the x axis in radians
+// /// Rotates a matrix around the x axis in radians
+// pub fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
+//     [
+//         [1.0, 0.0, 0.0, 0.0],
+//         [0.0, angle.cos(), -angle.sin(), 0.0],
+//         [0.0, angle.sin(), angle.cos(), 0.0],
+//         [0.0, 0.0, 0.0, 1.0f32],
+//     ]
+// }
+
+// /// Rotates a matrix around the y axis in radians
+// pub fn rotate_y(angle: f32) -> [[f32; 4]; 4] {
+//     [
+//         [angle.cos(), 0.0, angle.sin(), 0.0],
+//         [0.0, 1.0, 0.0, 0.0],
+//         [-angle.sin(), 0.0, angle.cos(), 0.0],
+//         [0.0, 0.0, 0.0, 1.0f32],
+//     ]
+// }
+
+// /// Rotates a matrix around the z axis in radians
+// pub fn rotate_z(angle: f32) -> [[f32; 4]; 4] {
+//     [
+//         [angle.cos(), -angle.sin(), 0.0, 0.0],
+//         [angle.sin(), angle.cos(), 0.0, 0.0],
+//         [0.0, 0.0, 1.0f32, 0.0],
+//         [0.0, 0.0, 0.0, 1.0f32],
+//     ]
+// }
+
 pub fn rotate_x(angle: f32) -> [[f32; 4]; 4] {
+    let c = angle.cos();
+    let s = angle.sin();
+
     [
         [1.0, 0.0, 0.0, 0.0],
-        [0.0, angle.cos(), -angle.sin(), 0.0],
-        [0.0, angle.sin(), angle.cos(), 0.0],
-        [0.0, 0.0, 0.0, 1.0f32],
+        [0.0, c, -s, 0.0],
+        [0.0, s, c, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
     ]
 }
 
-/// Rotates a matrix around the y axis in radians
 pub fn rotate_y(angle: f32) -> [[f32; 4]; 4] {
+    let c = angle.cos();
+    let s = angle.sin();
+
     [
-        [angle.cos(), 0.0, angle.sin(), 0.0],
+        [c, 0.0, s, 0.0],
         [0.0, 1.0, 0.0, 0.0],
-        [-angle.sin(), 0.0, angle.cos(), 0.0],
-        [0.0, 0.0, 0.0, 1.0f32],
+        [-s, 0.0, c, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
     ]
 }
 
-/// Rotates a matrix around the z axis in radians
 pub fn rotate_z(angle: f32) -> [[f32; 4]; 4] {
+    let c = angle.cos();
+    let s = angle.sin();
+
     [
-        [angle.cos(), -angle.sin(), 0.0, 0.0],
-        [angle.sin(), angle.cos(), 0.0, 0.0],
-        [0.0, 0.0, 1.0f32, 0.0],
-        [0.0, 0.0, 0.0, 1.0f32],
+        [c, -s, 0.0, 0.0],
+        [s, c, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
     ]
 }
 
@@ -97,11 +133,11 @@ pub fn identity_matrix() -> [[f32; 4]; 4] {
 pub fn model_matrix(position: &[f32; 3], rotation: &[f32; 3], scale: &[f32; 3]) -> [[f32; 4]; 4] {
     let mut m = identity_matrix();
 
-    m = mat_mul!(m, translate(position[0], position[1], position[2]));
+    m = mat_mul!(m, scale_mat(scale[0], scale[1], scale[2]));
     m = mat_mul!(m, rotate_x(rotation[0]));
     m = mat_mul!(m, rotate_y(rotation[1]));
     m = mat_mul!(m, rotate_z(rotation[2]));
-    m = mat_mul!(m, scale_mat(scale[0], scale[1], scale[2]));
+    m = mat_mul!(m, translate(position[0], position[1], position[2]));
 
     m
 }

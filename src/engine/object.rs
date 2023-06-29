@@ -50,6 +50,10 @@ impl Object {
         display: &glium::Display,
         tags: Vec<String>,
     ) -> Object {
+
+        // println!("Texture path: {:?}", texture_path);
+
+
         let facade = display.get_context();
 
         let load_options = tobj::LoadOptions {
@@ -66,11 +70,11 @@ impl Object {
             for i in 0..mesh.positions.len() / 3 {
                 let vertex = Vertex {
                     position: (
-                        mesh.positions[i * 3],
+                        -mesh.positions[i * 3],
                         mesh.positions[i * 3 + 1],
                         mesh.positions[i * 3 + 2],
                     ),
-                    normal: [mesh.normals[i * 3], mesh.normals[i * 3 + 1], mesh.normals[i * 3 + 2]],
+                    normal: [-mesh.normals[i * 3], mesh.normals[i * 3 + 1], mesh.normals[i * 3 + 2]],
                     tex_coords: [mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]],
                 };
                 verticies.push(vertex);
