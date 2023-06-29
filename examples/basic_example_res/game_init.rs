@@ -14,6 +14,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
         TextureFilter::Linear,
         model_matrix(&[0.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
         display,
+        vec!["monke".to_string()]
     ));
 
     game.add_scene(scene);
@@ -26,6 +27,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
         TextureFilter::Linear,
         model_matrix(&[-4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
         display,
+        vec!["cube".to_string()]
     ));
 
     scene.add_object(Object::new(
@@ -34,6 +36,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
         TextureFilter::Linear,
         model_matrix(&[4.0, 0.0, 2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
         display,
+        vec!["cube".to_string()]
     ));
 
     scene.add_object(Object::new(
@@ -42,6 +45,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
         TextureFilter::Linear,
         model_matrix(&[0.0, 0.0, 6.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
         display,
+        vec!["cube".to_string()]
     ));
 
     scene.add_object(Object::new(
@@ -50,6 +54,7 @@ pub fn game_init(game: &mut Game, display: &glium::Display) {
         TextureFilter::Linear,
         model_matrix(&[0.0, 0.0, -2.0], &[0.0, 0.0, 0.0], &[1.0, 1.0, 1.0]),
         display,
+        vec!["cube".to_string()]
     ));
 
     game.add_scene(scene);

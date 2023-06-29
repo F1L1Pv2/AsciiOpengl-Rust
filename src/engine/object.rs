@@ -36,6 +36,7 @@ pub struct Object {
     pub vb: glium::VertexBuffer<Vertex>,
     pub vertices: Vec<Vertex>,
     pub ib: glium::IndexBuffer<u32>,
+    pub tags: Vec<String>,
 }
 
 impl Object {
@@ -46,7 +47,8 @@ impl Object {
         texture_path: Option<&str>,
         texture_filter: TextureFilter,
         model: [[f32; 4]; 4],
-        display: &glium::Display
+        display: &glium::Display,
+        tags: Vec<String>,
     ) -> Object {
         let facade = display.get_context();
 
@@ -124,6 +126,7 @@ impl Object {
             vb,
             vertices: verticies,
             ib,
+            tags,
         }
     }
 

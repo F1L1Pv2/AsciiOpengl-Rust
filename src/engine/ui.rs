@@ -96,6 +96,7 @@ pub fn draw_text(
             texture,
             texture_filter: TextureFilter::Nearest,
             model,
+            tags: vec!["ui".to_string()]
         };
 
         objects.push(object);
@@ -164,6 +165,7 @@ pub fn draw_rect_tex(
         vertices,
         vb,
         ib,
+        tags: vec!["ui".to_string()]
     }
 }
 
@@ -233,5 +235,6 @@ pub fn draw_rect(
         vertices,
         vb,
         ib,
+        tags: vec!["ui".to_string()]
     }
 }
