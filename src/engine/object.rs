@@ -21,7 +21,7 @@ pub enum TextureFilter {
     Linear,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct AABB {
     pub min: [f32; 3],
     pub max: [f32; 3],
