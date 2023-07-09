@@ -6,6 +6,7 @@ pub fn game_loop(
     device_state: &DeviceState,
     terminal_res: (u32, u32),
     game: &mut Game,
+    _display: &glium::Display,
     pause: &mut bool,
     // last_mouse_pos: &mut (i32, i32),
 ) {
@@ -91,7 +92,7 @@ pub fn game_loop(
         }
     }
     if !*pause {
-        game.camera.update(terminal_res, move_vector, mouse_vector);
+        game.camera.update_by_speed(terminal_res, move_vector, mouse_vector);
 
         // for object in game.get_scene().objects.iter() {
         //     println!("object: {:?}", object.model);
