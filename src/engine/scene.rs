@@ -163,6 +163,22 @@ impl Scene {
         objects
     }
 
+    pub fn get_mut_objects_by_tags(&mut self, tags: Vec<&str>) -> Vec<&mut Object> {
+        //no duplicates
+        let mut objects: Vec<&mut Object> = Vec::new();
+
+        for object in self.objects.iter_mut() {
+            for tag in tags.iter() {
+                if object.tags.contains(&tag.to_string()) {
+                    objects.push(object);
+                    break;
+                }
+            }
+        }
+
+        objects
+    }
+
     /// Adds an object to the scene
     pub fn add_object(&mut self, object: Object) {
         self.objects.push(object);
