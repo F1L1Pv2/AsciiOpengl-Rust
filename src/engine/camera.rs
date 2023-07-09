@@ -37,9 +37,20 @@ impl Camera {
         self.projection
     }
 
+
+    pub fn update(
+        &mut self,
+        terminal_size: (u32, u32),
+        camera_pos: [f32; 3],
+        camera_rot: [f32; 3],
+    ){
+        self.view = view_matrix(&camera_pos, &camera_rot);
+        self.projection = perspective_matrix(terminal_size);
+    }
+
     /// Moves the camera forward by `move_speed` units.
     /// And rotates camera by `mouse_sensitivity` units.
-    pub fn update(
+    pub fn update_by_speed(
         &mut self,
         terminal_size: (u32, u32),
         move_vector: [i8; 3],
