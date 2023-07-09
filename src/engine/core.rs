@@ -212,12 +212,12 @@ pub fn init(assets_path: &str) -> InitType {
 #[macro_export]
 /// The `game_loop` macro creates a game loop function with ability to pass additional parameters.
 /// NOTE: The game loop function must have the following signature:
-/// `fn(&DeviceState, (u32, u32), &mut Game, ...)`
+/// `fn(&DeviceState, (u32, u32), &mut Game, &glium::Display, ...)`
 /// where `...` is the list of additional parameters.
 macro_rules! game_loop {
     ($game_loop_func:expr $(, $param:expr)* $(,)?) => {
-        move |device_state, terminal_res, game| {
-            $game_loop_func(device_state, terminal_res, game $(, $param)*);
+        move |device_state, terminal_res, game, display| {
+            $game_loop_func(device_state, terminal_res, game, display $(, $param)*);
         }
     };
 }
@@ -340,7 +340,7 @@ where
                 while accumulator >= fixed_timestep {
                     //--------------------------------- Sort of a game loop ---------------------------------
 
-                    game_loop(&device_state, terminal_res, &mut game);
+                    game_loop(&device_state, terminal_res, &mut game, &display);
 
                     accumulator -= fixed_timestep;
                 }
