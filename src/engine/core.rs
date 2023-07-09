@@ -225,12 +225,12 @@ macro_rules! game_loop {
 #[macro_export]
 /// The `game_init` macro creates a game init function with ability to pass additional parameters.
 /// NOTE: The game init function must have the following signature:
-/// `fn(&mut Game, &glium::Display, ...)`
+/// `fn( (u32,u32), &mut Game, &glium::Display, ...)`
 /// where `...` is the list of additional parameters.
 macro_rules! game_init {
     ($game_init_func:expr $(, $param:expr)* $(,)?) => {
-        move |game, display| {
-            $game_init_func(game, display $(, $param)*);
+        move |terminal_res,game, display| {
+            $game_init_func(terminal_res,game, display $(, $param)*);
         }
     };
 }
@@ -248,7 +248,7 @@ macro_rules! init_engine {
 pub fn run_event_loop<F, G>(init_type: InitType, mut game_loop: F, mut game_init: G)
 where
     F: FnMut(&DeviceState, (u32, u32), &mut Game, &glium::Display) + 'static,
-    G: FnMut(&mut Game, &glium::Display) + 'static,
+    G: FnMut((u32, u32),&mut Game, &glium::Display) + 'static,
 {
     let (
         terminal_res,
@@ -262,7 +262,7 @@ where
         mut game,
     ) = init_type;
 
-    game_init(&mut game, &display);
+    game_init(terminal_res,&mut game, &display);
 
     let mut terminal_res = terminal_res;
     let mut terminal_fb = terminal_fb;
