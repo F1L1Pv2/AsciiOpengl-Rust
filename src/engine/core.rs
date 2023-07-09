@@ -94,6 +94,11 @@ impl Game {
     pub fn get_ui_elems(&self) -> &UiElems {
         &self.ui_elems
     }
+
+    /// get the ui elements as mutable
+    pub fn get_ui_elems_mut(&mut self) -> &mut UiElems {
+        &mut self.ui_elems
+    }
 }
 
 pub fn init(assets_path: &str) -> InitType {
