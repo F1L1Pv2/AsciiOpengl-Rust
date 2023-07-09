@@ -247,7 +247,7 @@ macro_rules! init_engine {
 
 pub fn run_event_loop<F, G>(init_type: InitType, mut game_loop: F, mut game_init: G)
 where
-    F: FnMut(&DeviceState, (u32, u32), &mut Game) + 'static,
+    F: FnMut(&DeviceState, (u32, u32), &mut Game, &glium::Display) + 'static,
     G: FnMut(&mut Game, &glium::Display) + 'static,
 {
     let (
