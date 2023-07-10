@@ -37,6 +37,11 @@ impl Camera {
         self.projection
     }
 
+    pub fn update_self(&mut self, terminal_size: (u32, u32)) {
+        self.view = view_matrix(&self.player_pos, &self.player_rot);
+        self.projection = perspective_matrix(terminal_size);
+    }
+
 
     pub fn update(
         &mut self,
