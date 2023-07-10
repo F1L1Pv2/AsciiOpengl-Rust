@@ -78,6 +78,16 @@ impl Game {
         &mut self.scenes[self.current_scene]
     }
 
+    /// Get scene by index
+    pub fn get_scene_by_index(&self, index: usize) -> &Scene {
+        &self.scenes[index]
+    }
+
+    /// Get scene by index as mutable
+    pub fn get_scene_by_index_mut(&mut self, index: usize) -> &mut Scene {
+        &mut self.scenes[index]
+    }
+
     /// add a ui element to the game
     pub fn add_ui_elem(&mut self, elem: Object) {
         self.ui_elems.elems.push(elem);
