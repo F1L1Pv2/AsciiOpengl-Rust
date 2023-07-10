@@ -347,6 +347,8 @@ where
                 accumulator += now - next_frame_time;
                 next_frame_time = now;
 
+                game.delta_time = accumulator.as_secs_f32();
+
                 while accumulator >= fixed_timestep {
                     //--------------------------------- Sort of a game loop ---------------------------------
 
