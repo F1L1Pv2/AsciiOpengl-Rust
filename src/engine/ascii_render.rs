@@ -1,10 +1,11 @@
-use std::io::{BufWriter, Write};
+use std::io::{ BufWriter, Write, stdout };
 
 pub struct TerminalFrameBuffer {
     front_buffer: Vec<u32>,
     back_buffer: Vec<u32>,
     width: usize,
     height: usize,
+    out: BufWriter<std::io::StdoutLock<'static>>,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -22,64 +23,36 @@ pub struct Color {
 
 impl TerminalFrameBuffer {
     pub fn new(width: usize, height: usize, initial_color: Color) -> TerminalFrameBuffer {
-        let initial_color_value = (u32::from(initial_color.r) << 16)
-            | (u32::from(initial_color.g) << 8)
-            | u32::from(initial_color.b);
-        let framebuffer = TerminalFrameBuffer {
+        let initial_color_value =
+            (u32::from(initial_color.r) << 16) |
+            (u32::from(initial_color.g) << 8) |
+            u32::from(initial_color.b);
+        let mut framebuffer = TerminalFrameBuffer {
             front_buffer: vec![initial_color_value; width * height],
             back_buffer: vec![initial_color_value; width * height],
             width,
             height,
+            out: BufWriter::new(stdout().lock()),
         };
         framebuffer.clear_terminal_and_fill_with_initial_color(initial_color);
         framebuffer
     }
 
     pub fn update_res(&mut self, width: usize, height: usize) {
-        self.front_buffer = vec![0; width * height];
-        self.back_buffer = vec![0; width * height];
+        self.front_buffer.resize(width * height, 0);
+        self.back_buffer.resize(width * height, 0);
         self.width = width;
         self.height = height;
     }
 
-    pub fn clear_terminal_and_fill_with_initial_color(&self, initial_color: Color) {
-        let stdout = std::io::stdout();
-        let mut out = BufWriter::new(stdout.lock());
-        write!(out, "\x1B[2J\x1B[1;1H").unwrap();
-        for _y in 0..self.height {
-            for _x in 0..self.width {
-                write!(
-                    out,
-                    "\x1b[48;2;{};{};{}m  ",
-                    initial_color.r, initial_color.g, initial_color.b
-                )
-                .unwrap();
-            }
-            writeln!(out, "\x1b[0m").unwrap();
+    pub fn clear(&mut self) {
+        for pixel in &mut self.back_buffer {
+            *pixel = 0;
         }
-        out.flush().unwrap();
-    }
-    pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
-        let color = (u32::from(color.r) << 16) | (u32::from(color.g) << 8) | u32::from(color.b);
-        //check if x and y are in bounds
-        if x >= self.width || y >= self.height {
-            return;
-        }
-        self.back_buffer[y * self.width + x] = color;
-    }
-
-    fn get_pixel(&self, x: usize, y: usize) -> u32 {
-        self.front_buffer[y * self.width + x]
     }
 
     pub fn draw_frame(&mut self) {
-        // let characters = vec!["\u{a0}", ".", ",", ":", ";", "+", "*", "?", "%", "S", "#", "@"];
-        //reversed
-        let characters = vec![
-            "@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "\u{a0}",
-        ];
-        let stdout = std::io::stdout();
-        let mut out = BufWriter::new(stdout.lock());
+        let characters = vec!["@", "#", "S", "%", "?", "*", "+", ";", ":", ",", ".", "\u{a0}"];
         for y in 0..self.height {
             for x in 0..self.width {
                 let front_pixel = self.get_pixel(x, y);
@@ -89,19 +62,19 @@ impl TerminalFrameBuffer {
                     let g = (back_pixel >> 8) & 0xff;
                     let b = back_pixel & 0xff;
 
-                    //calculate hsl
-                    let (h, s, l) =
-                        rgb_to_hsl((r as f32) / 255.0, (g as f32) / 255.0, (b as f32) / 255.0);
+                    let (h, s, l) = rgb_to_hsl(
+                        (r as f32) / 255.0,
+                        (g as f32) / 255.0,
+                        (b as f32) / 255.0
+                    );
 
-                    //calculate character from l
                     let character_index = ((1.0 - l) * ((characters.len() - 1) as f32)) as usize;
                     let character = characters[character_index];
 
-                    //calculate color from h and s
                     let (fr, fg, fb) = hsl_to_rgb(h, s, 0.5);
 
                     write!(
-                        out,
+                        self.out,
                         "\x1B[{};{}H\x1b[48;2;{};{};{}m\x1b[38;2;{};{};{}m{}{}",
                         y + 1,
                         x * 2 + 1,
@@ -113,22 +86,45 @@ impl TerminalFrameBuffer {
                         fb,
                         character,
                         character
-                    )
-                    .unwrap();
+                    ).unwrap();
                 }
             }
         }
-        write!(out, "\x1B[{};{}H\x1b[0m", self.height + 1, 1).unwrap();
-        out.flush().unwrap();
+        write!(self.out, "\x1B[{};{}H\x1b[0m", self.height + 1, 1).unwrap();
+        self.out.flush().unwrap();
         self.swap_buffers();
     }
 
-    pub fn clear(&mut self) {
-        self.back_buffer = vec![0; self.width * self.height];
+    pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
+        let color = (u32::from(color.r) << 16) | (u32::from(color.g) << 8) | u32::from(color.b);
+        if x < self.width && y < self.height {
+            self.back_buffer[y * self.width + x] = color;
+        }
+    }
+
+    fn get_pixel(&self, x: usize, y: usize) -> u32 {
+        self.front_buffer[y * self.width + x]
     }
 
     fn swap_buffers(&mut self) {
         std::mem::swap(&mut self.front_buffer, &mut self.back_buffer);
+    }
+
+    pub fn clear_terminal_and_fill_with_initial_color(&mut self, initial_color: Color) {
+        write!(self.out, "\x1B[2J\x1B[1;1H").unwrap();
+        for _y in 0..self.height {
+            for _x in 0..self.width {
+                write!(
+                    self.out,
+                    "\x1b[48;2;{};{};{}m  ",
+                    initial_color.r,
+                    initial_color.g,
+                    initial_color.b
+                ).unwrap();
+            }
+            writeln!(self.out, "\x1b[0m").unwrap();
+        }
+        self.out.flush().unwrap();
     }
 }
 
@@ -150,11 +146,7 @@ fn rgb_to_hsl(r: f32, g: f32, b: f32) -> (f32, f32, f32) {
 
     let l = (cmax + cmin) / 2.0;
 
-    let s = if delta == 0.0 {
-        0.0
-    } else {
-        delta / (1.0 - (2.0 * l - 1.0).abs())
-    };
+    let s = if delta == 0.0 { 0.0 } else { delta / (1.0 - (2.0 * l - 1.0).abs()) };
 
     (h, s, l)
 }
