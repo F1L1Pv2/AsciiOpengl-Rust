@@ -15,7 +15,8 @@ ascii_opengl_rust = { git = "https://github.com/F1L1Pv2/AsciiOpengl-Rust " }
 i plan on adding it to crates.io.
 i will add more documentation later
 
-### NOTE: it is recommended to create and export scenes using my blender plugin https://github.com/F1L1Pv2/ascii_scene_exporter
+> ***Note***
+> it is recommended to create and export scenes using my blender plugin https://github.com/F1L1Pv2 ascii_scene_exporter
 
 i also recomend to look at `basic_example` and source code of [MonkeRun](https://github.com/F1L1Pv2/MonkeRun) to get idea how this engine works
 
