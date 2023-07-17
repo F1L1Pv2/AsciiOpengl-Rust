@@ -37,8 +37,8 @@ i also recomend to look at `basic_example` and source code of [MonkeRun](https:/
 - [x] Camera
 - [x] Mesh
 - [x] Shaders
-- [x] KeyboardInput
-- [x] MouseInput
+- [x] KeyboardInput (Key up, down, pressed events)
+- [x] MouseInput (mouse_delta, mouse_position, mouse_button up, down, pressed events)
 - [x] Lib
 
 more may be added later
