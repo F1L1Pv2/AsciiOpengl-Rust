@@ -23,7 +23,7 @@ i also recomend to look at `basic_example` and source code of [MonkeRun](https:/
 ## TODO
 
 - [x] Textures
-- [x] Scene editor
+- [x] Scene editor ([ascii_scene_exporter](https://github.com/F1L1Pv2/ascii_scene_exporter))
 - [x] Scene loader
 - [ ] Audio
 - [x] Physics ([MonkeRun](https://github.com/F1L1Pv2/MonkeRun))
