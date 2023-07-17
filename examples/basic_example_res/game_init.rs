@@ -5,7 +5,7 @@ use ascii_opengl_rust::engine::scene::Scene;
 use ascii_opengl_rust::engine::ui::{ draw_rect, draw_text };
 use fontdue::Font;
 
-pub fn game_init(_terminal_res: (u32, u32), game: &mut Game, display: &glium::Display) {
+pub fn game_init(terminal_res: (u32, u32), game: &mut Game, display: &glium::Display) {
     let mut scene: Scene = Scene::new();
 
     game.add_scene(
