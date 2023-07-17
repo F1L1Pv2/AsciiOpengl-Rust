@@ -26,7 +26,7 @@ i also recomend to look at `basic_example` and source code of [MonkeRun](https:/
 - [x] Scene editor
 - [x] Scene loader
 - [ ] Audio
-- [ ] Physics
+- [x] Physics ([MonkeRun](https://github.com/F1L1Pv2/MonkeRun))
 - [x] UI
 - [ ] UI Editor
 - [x] Loading OBJ files
@@ -38,7 +38,7 @@ i also recomend to look at `basic_example` and source code of [MonkeRun](https:/
 - [x] Mesh
 - [x] Shaders
 - [x] KeyboardInput
-- [ ] MouseInput
+- [x] MouseInput
 - [x] Lib
 
 more may be added later

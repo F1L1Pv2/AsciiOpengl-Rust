@@ -1,14 +1,16 @@
 // WIP
 use ascii_opengl_rust::engine::core::Game;
-use device_query::{DeviceQuery, DeviceState, Keycode};
+use device_query::{ DeviceQuery, DeviceState, Keycode };
+use crate::basic_example_res::game_event::{ GameEvent, KeyDownEvent, KeyUpEvent };
 
 pub fn game_loop(
     device_state: &DeviceState,
     terminal_res: (u32, u32),
     game: &mut Game,
-    _display: &glium::Display,
+    display: &glium::Display,
     pause: &mut bool,
-    // last_mouse_pos: &mut (i32, i32),
+    game_events: &mut Vec<GameEvent>,
+    last_keys: &mut Vec<Keycode>
 ) {
     // let mouse_sensitive = 0.1;
 
@@ -17,31 +19,71 @@ pub fn game_loop(
 
     let keys: Vec<Keycode> = device_state.get_keys();
 
-    //get mouse delta
-    // let mouse_state = device_state.get_mouse();
+    // keys handler -----------------------------------------------------------------------
 
-    // let mouse_pos = mouse_state.coords;
+    keys.iter().for_each(|key| {
+        if !last_keys.contains(key) {
+            game_events.push(GameEvent::KeyDown(KeyDownEvent { key: key.clone() }));
+        }
+    });
 
-    // println!("mouse pos: {:?}", mouse_pos);
+    last_keys.iter().for_each(|key| {
+        if !keys.contains(key) {
+            game_events.push(GameEvent::KeyUp(KeyUpEvent { key: key.clone() }));
+        }
+    });
 
-    // let mouse_delta = (mouse_pos.0 - last_mouse_pos.0, mouse_pos.1 - last_mouse_pos.1);
+    *last_keys = keys.clone();
 
-    // //normalize vector without termianl_res
-    // let mouse_delta_len = (mouse_delta.0 as f32 * mouse_delta.0 as f32 + mouse_delta.1 as f32 * mouse_delta.1 as f32).sqrt();
+    // mouse handler ----------------------------------------------------------------------
 
-    // let new_mouse_delta: (f32, f32);
+    let mouse_pos = device_state.get_mouse().coords;
 
-    // if mouse_delta_len != 0.0 {
-    //     new_mouse_delta = (mouse_delta.0 as f32 / mouse_delta_len, mouse_delta.1 as f32 / mouse_delta_len) as (f32, f32);
-    // }else{
-    //     new_mouse_delta = (0.0, 0.0);
+    let mut mouse_delta = (mouse_pos.0 as f32 / terminal_res.0 as f32 - 0.5, mouse_pos.1 as f32 / terminal_res.1 as f32 - 0.5);
+
+    //normalize mouse delta
+    
+    // let mouse_delta_mag = (mouse_delta.0 * mouse_delta.0 + mouse_delta.1 * mouse_delta.1).sqrt();
+    // let mut mouse_delta = (mouse_delta.0 / mouse_delta_mag, mouse_delta.1 / mouse_delta_mag);
+
+
+    // if mouse_delta.1.abs() > 0.0{
+    //     mouse_delta.0 /= mouse_delta.1.abs();
     // }
+    if mouse_delta.0.abs() < 0.01 {
+        mouse_delta.0 = 0.0;
+    }
 
-    // let mouse_delta = new_mouse_delta;
+    // mouse_delta.0 =0
 
-    // println!("mouse delta: {:?}", mouse_delta);
+    if mouse_delta.1.abs() < 0.01 {
+        mouse_delta.1 = 0.0;
+    }
 
-    // *last_mouse_pos = mouse_pos;
+    // println!("{:?}", mouse_delta);
+    // game events ------------------------------------------------------------------------
+
+    game_events.iter().for_each(|event| {
+        match event {
+            GameEvent::KeyUp(event) => {
+                match event.key {
+                    Keycode::Escape => {
+                        *pause = !*pause;
+                    }
+                    Keycode::Q => {
+                        game.set_scene(0);
+                    }
+                    Keycode::E => {
+                        game.set_scene(1);
+                    }
+                    _ => (),
+                }
+            }
+            _ => (),
+        }
+    });
+
+    // game logic -------------------------------------------------------------------------
 
     for key in keys {
         match key {
@@ -75,29 +117,34 @@ pub fn game_loop(
             Keycode::L => {
                 mouse_vector[0] = 1;
             }
-            Keycode::Escape => {
-                //clear the terminal
-                // print!("\x1B[2J\x1B[1;1H");
-                // std::process::exit(0);
-                *pause = !*pause;
-            }
-            Keycode::Q => {
-                game.set_scene(0);
-            }
-            Keycode::E => {
-                game.set_scene(1);
-            }
             _ => (),
-            
         }
     }
     if !*pause {
+
+        let aspect_ratio = terminal_res.0 as f32 / terminal_res.1 as f32;
+
         game.camera.update_by_speed(terminal_res, move_vector, mouse_vector);
 
-        // for object in game.get_scene().objects.iter() {
-        //     println!("object: {:?}", object.model);
-        // }
-        // game.camera.player_rot[0] += mouse_delta.1 as f32 * mouse_sensitive;
-        // game.camera.player_rot[1] += mouse_delta.0 as f32 * mouse_sensitive;
+        //rotate the camera
+        game.camera.player_rot[0] += (mouse_delta.1 as f32) * 0.4;
+        game.camera.player_rot[1] += (mouse_delta.0 as f32) * 0.4 * aspect_ratio;
+
+        game.camera.update_self(terminal_res);
+
+        display
+            .gl_window()
+            .window()
+            .set_cursor_position(
+                glium::glutin::dpi::PhysicalPosition::new(
+                    (terminal_res.0 as f64) / 2.0,
+                    (terminal_res.1 as f64) / 2.0
+                )
+            )
+            .unwrap();
     }
+
+    //clean up ---------------------------------------------------------------------------
+
+    game_events.clear();
 }

@@ -22,6 +22,9 @@ pub fn game_init(_terminal_res: (u32,u32),game: &mut Game, display: &glium::Disp
     game.add_scene(scene);
 
 
+    game.camera.player_rot = [0.0, 0.0, 0.0];
+
+
 
     // let mut scene = Scene::new();
 
