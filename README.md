@@ -12,6 +12,12 @@ Cargo.toml
 [dependencies]
 ascii_opengl_rust = { git = "https://github.com/F1L1Pv2/AsciiOpengl-Rust " }
 ```
+
+How to run example
+```bash
+cargo run --release --example basic_example
+```
+
 i plan on adding it to crates.io.
 i will add more documentation later
 
