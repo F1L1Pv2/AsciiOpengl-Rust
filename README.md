@@ -25,18 +25,20 @@ i also recomend to look at `basic_example` and source code of [MonkeRun](https:/
 - [x] Textures
 - [x] Scene editor ([ascii_scene_exporter](https://github.com/F1L1Pv2/ascii_scene_exporter))
 - [x] Scene loader
-- [ ] Audio
+- [ ] Audio (2D and 3D)
 - [x] Physics ([MonkeRun](https://github.com/F1L1Pv2/MonkeRun))
 - [x] UI
 - [ ] UI Editor
 - [x] Loading OBJ files
-- [ ] Vertex Colors
+- [ ] Vertex Colors (FBX)
 - [ ] Lighting
 - [x] AsciiRenderer
 - [x] Game loop
 - [x] Camera
 - [x] Mesh
 - [x] Shaders
+- [ ] Loading fbx
+- [ ] Animations (FBX)
 - [x] KeyboardInput (Key up, down, pressed events)
 - [x] MouseInput (mouse_delta, mouse_position, mouse_button up, down, pressed events)
 - [x] Lib
